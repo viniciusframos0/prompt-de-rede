@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#1c1c22">
+<meta name="description" content="Simulador do Prompt de Comando do Windows para celular: pratique os comandos de rede da Apostila 02 (ipconfig, ping, tracert, nslookup, netstat, arp, route e mais) e resolva chamados de suporte.">
+<meta name="author" content="Vinícius Ramos">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Prompt de Rede">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Prompt de Rede">
+<meta property="og:title" content="Prompt de Rede: laboratório de comandos de rede no celular">
+<meta property="og:description" content="ipconfig, ping, tracert, nslookup, netstat, arp, route e chamados de suporte para diagnosticar. Funciona em qualquer celular.">
+<meta property="og:url" content="https://viniciusframos0.github.io/prompt-de-rede/">
+<meta property="og:image" content="https://viniciusframos0.github.io/prompt-de-rede/og-image.png">
+<meta property="og:image:secure_url" content="https://viniciusframos0.github.io/prompt-de-rede/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Janela do Prompt de Comando com o resultado de um ping">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://viniciusframos0.github.io/prompt-de-rede/og-image.png">
+<title>Prompt de Rede ETEMB</title>
+<style>
+:root{
+  /* Layout: janela única do CMD — barra de título, status, terminal, atalhos e teclas fixas embaixo */
+  --bg:#0c0c0c; --fg:#cccccc; --hi:#f2f2f2; --dim:#80868f;
+  --bar:#1c1c22; --bar2:#141418; --line:#2d2d36; --key:#26262e; --keyb:#3a3a46;
+  --blue:#3b78ff; --blue2:#9fb9ff; --green:#16c60c; --yel:#f9f1a5; --red:#e74856; --amber:#e5a50a;
+  --mono:"Cascadia Mono",Consolas,"Lucida Console","Roboto Mono","Droid Sans Mono","DejaVu Sans Mono",Menlo,monospace;
+  --ui:-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0;height:100%;background:#0c0c0c;overflow:hidden}
+#app{position:fixed;left:0;right:0;top:0;height:100%;display:flex;flex-direction:column;background:#0c0c0c;background:var(--bg);color:#ccc;color:var(--fg)}
+button{font-family:inherit;-webkit-appearance:none;appearance:none}
+button:focus{outline:none}
+button:focus-visible{outline:2px solid #9fb9ff;outline-offset:1px}
+
+.top{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bar);border-bottom:1px solid var(--line);
+  padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top,0px));padding-left:calc(8px + env(safe-area-inset-left,0px));padding-right:calc(8px + env(safe-area-inset-right,0px))}
+.ttl{display:flex;align-items:center;min-width:0;overflow:hidden}
+.ico{font:700 10px/1 var(--mono);border:1px solid #6b6b78;padding:3px 4px;color:#fff;background:#000;margin-right:8px;flex-shrink:0}
+.tt{font:12.5px var(--ui);color:#e6e6e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{display:flex;flex-shrink:0;margin-left:8px}
+.tb{margin-left:6px;font:600 12.5px var(--ui);color:#fff;background:#2b2b34;border:1px solid #444452;border-radius:5px;padding:7px 10px;cursor:pointer}
+.tb.pri{background:#1d3566;border-color:var(--blue)}
+
+.status{display:flex;flex-wrap:wrap;align-items:center;flex-shrink:0;background:var(--bar2);border-bottom:1px solid var(--line);
+  padding:3px 8px;padding-left:calc(8px + env(safe-area-inset-left,0px));font:11.5px var(--ui);color:#9aa0aa}
+.status > *{margin:2px 10px 2px 0}
+.status b{color:#fff;font-family:var(--mono);font-weight:600}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#777;margin-right:5px;vertical-align:middle}
+.dot.ok{background:var(--green)} .dot.sim{background:var(--amber)}
+.pill{font:600 11px var(--ui);border-radius:20px;padding:4px 10px;border:1px solid #444452;background:#23232b;color:#ddd;cursor:pointer}
+.pill.on{border-color:#2f7d32;color:#8fe388;background:#13301a}
+.pill.warn{border-color:#c58b00;color:#ffd666;background:#3a2c05}
+
+#vp{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;font-family:var(--mono);font-size:13px;line-height:1.38;
+  padding:10px 10px 16px;padding-left:calc(10px + env(safe-area-inset-left,0px));padding-right:calc(10px + env(safe-area-inset-right,0px))}
+.l{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;min-height:1.38em}
+.l.echo{color:var(--hi)}
+.l.sys{color:var(--dim)}
+.note{margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--blue);background:rgba(59,120,255,.11);border-radius:0 6px 6px 0;font:13px/1.45 var(--ui);color:#d4defa;white-space:normal;max-width:70ch}
+.note .nt{display:block;font:700 10.5px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--yel);margin-bottom:3px}
+.note code{font-family:var(--mono);font-size:.95em;background:rgba(255,255,255,.08);padding:0 4px;border-radius:3px;color:#fff;white-space:nowrap}
+.note.tk{border-color:var(--amber);background:rgba(229,165,10,.11);color:#f5e7c4}
+.note.win{border-color:var(--green);background:rgba(22,198,12,.11);color:#d5f5d2}
+.note.warn{border-color:var(--red);background:rgba(231,72,86,.11);color:#ffd9dc}
+#frm{display:flex;align-items:center;margin:2px 0 0}
+#pl{white-space:pre;flex-shrink:0}
+#iw{flex:1 1 auto;min-width:30px;overflow:hidden;position:relative}
+#cmd{display:block;width:100%;background:transparent;border:0;outline:0;color:var(--hi);font-family:var(--mono);font-size:16px;line-height:1.2;padding:0;margin:0;caret-color:var(--green);border-radius:0;-webkit-appearance:none;appearance:none}
+#cmd::placeholder{color:#555b63}
+
+.chips{display:flex;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--bar2);border-top:1px solid var(--line);padding:6px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar,.ks::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;margin:0 3px;font:12.5px var(--mono);color:#e4e4e4;background:var(--key);border:1px solid var(--keyb);border-radius:5px;padding:7px 10px;white-space:nowrap;cursor:pointer}
+.chip:active,.k:active{background:#3a3a46}
+.keys{display:flex;align-items:center;flex-shrink:0;background:var(--bar);border-top:1px solid var(--line);
+  padding:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));padding-left:calc(6px + env(safe-area-inset-left,0px));padding-right:calc(6px + env(safe-area-inset-right,0px))}
+.ks{display:flex;flex:1 1 auto;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.k{flex-shrink:0;min-width:38px;margin-right:5px;font:600 14px var(--mono);color:#ddd;background:var(--key);border:1px solid var(--keyb);border-radius:5px;padding:8px 8px;cursor:pointer}
+.k.sm{font:600 12px var(--ui)}
+.k.cc{color:#ffb3b9;border-color:#6a2a31}
+.k.cc.live{background:#5a141a;border-color:var(--red);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.7}}
+.run{flex-shrink:0;margin-left:4px;font:700 14px var(--ui);color:#04140a;background:var(--green);border:0;border-radius:5px;padding:9px 14px;cursor:pointer}
+
+.modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.sheet{background:#17171c;width:100%;max-width:720px;height:90%;display:flex;flex-direction:column;border-radius:14px 14px 0 0;border-top:2px solid var(--blue);font-family:var(--ui);color:#ddd;padding-bottom:env(safe-area-inset-bottom,0px)}
+.mh{display:flex;align-items:center;border-bottom:1px solid var(--line);padding:6px 8px}
+.tabs{display:flex;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tab{flex-shrink:0;font:600 13px var(--ui);color:#a3a8b4;background:transparent;border:0;border-bottom:2px solid transparent;padding:9px 10px;cursor:pointer}
+.tab.on{color:#fff;border-bottom-color:var(--blue)}
+.x{flex-shrink:0;margin-left:6px;font:600 12.5px var(--ui);color:#fff;background:#33333d;border:0;border-radius:6px;padding:8px 11px;cursor:pointer}
+.mb{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 28px}
+.sec{margin:0 0 20px}
+.sec h3{font:700 11px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--yel);margin:0 0 8px}
+.p{font:13.5px/1.5 var(--ui);color:#c9c9d2;margin:0 0 10px;max-width:65ch}
+.p code,.q code{font-family:var(--mono);color:#fff;background:rgba(255,255,255,.08);padding:0 4px;border-radius:3px}
+.row{display:block;width:100%;text-align:left;background:#202027;border:1px solid #30303a;border-radius:7px;padding:9px 11px;margin:0 0 6px;color:#c9c9d2;cursor:pointer;font:13px/1.4 var(--ui)}
+.row .c{display:block;font:600 13px var(--mono);color:#9fd0ff;margin-bottom:2px;word-break:break-all}
+.row:active{background:#2a2a33}
+.q{background:#1d1d23;border:1px solid #2c2c35;border-radius:8px;padding:10px 11px;margin:0 0 8px;font:13.5px/1.5 var(--ui);color:#d6d6de}
+.q .n{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:#1d3566;color:#cfe0ff;font:700 12px var(--ui);margin-right:6px}
+.q .bt{margin-top:7px}
+.mini{display:inline-block;margin:4px 6px 0 0;font:600 12px var(--mono);color:#9fd0ff;background:#14284b;border:1px solid #2b5092;border-radius:5px;padding:5px 8px;cursor:pointer}
+.mini.alt{color:#ffd666;background:#3a2c05;border-color:#8a6400;font-family:var(--ui)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.qr{border-collapse:collapse;width:100%;min-width:480px;font:12.5px/1.4 var(--ui)}
+.qr th{text-align:left;color:var(--yel);font-weight:700;padding:7px 8px;border-bottom:1px solid #3a3a46}
+.qr td{padding:7px 8px;border-bottom:1px solid #2a2a33;color:#d0d0d8;vertical-align:top}
+.qr td code{font-family:var(--mono);color:#9fd0ff}
+.tkbox{background:#2a2108;border:1px solid #8a6400;border-radius:8px;padding:11px;margin:0 0 12px;font:13.5px/1.5 var(--ui);color:#f5e7c4}
+.ans{background:#10261a;border:1px solid #2f7d32;border-radius:8px;padding:11px;margin:8px 0 0;font:13.5px/1.5 var(--ui);color:#d5f5d2}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="ttl"><span class="ico">C:\_</span><span class="tt" id="wtitle">Administrador: Prompt de Comando</span></div>
+    <div class="acts">
+      <button type="button" class="tb pri" id="bAp">Apostila</button>
+      <button type="button" class="tb" id="bCh">Chamados</button>
+      <button type="button" class="tb" id="bAa" title="Tamanho da letra">Aa</button>
+    </div>
+  </header>
+  <div class="status">
+    <span><span class="dot" id="sDot"></span><span id="sNet">verificando a conexão…</span></span>
+    <span>IP público: <b id="sPub">…</b></span>
+    <button type="button" class="pill on" id="bEdu">Explicações: ON</button>
+    <button type="button" class="pill warn" id="sTk" hidden>Chamado aberto</button>
+  </div>
+  <main id="vp">
+    <div id="out"></div>
+    <form id="frm" action="#" autocomplete="off">
+      <label id="pl" for="cmd">C:\Users\aluno&gt;</label>
+      <div id="iw"><input type="text" id="cmd" name="cmd" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="digite um comando"></div>
+    </form>
+  </main>
+  <div class="chips" id="chips"></div>
+  <div class="keys">
+    <div class="ks">
+      <button type="button" class="k" data-k="up" title="Comando anterior">▲</button>
+      <button type="button" class="k" data-k="down" title="Próximo comando">▼</button>
+      <button type="button" class="k sm" data-k="tab">Tab</button>
+      <button type="button" class="k" data-k="/">/</button>
+      <button type="button" class="k" data-k="-">-</button>
+      <button type="button" class="k" data-k="|">|</button>
+      <button type="button" class="k" data-k=":">:</button>
+      <button type="button" class="k" data-k="&quot;">"</button>
+      <button type="button" class="k" data-k="\">\</button>
+      <button type="button" class="k sm cc" data-k="ctrlc" id="bCC">Ctrl+C</button>
+    </div>
+    <button type="button" class="run" id="bRun">Executar ↵</button>
+  </div>
+  <div class="modal" id="modal" hidden>
+    <div class="sheet" role="dialog" aria-label="Apostila">
+      <div class="mh"><div class="tabs" id="tabs"></div><button type="button" class="x" id="mX">Fechar</button></div>
+      <div class="mb" id="mb"></div>
+    </div>
+  </div>
+</div>
+<script>
+/*
+ * Simulador de Prompt de Comando - Apostila 02 (Comandos de Rede e Diagnóstico)
+ * ETEMB - Redes de Computadores II
+ *
+ * Escrito em JavaScript "antigo" (ES5) de propósito, para rodar em celulares
+ * com navegador desatualizado. Funciona sem internet: quando a rede da escola
+ * bloqueia as consultas reais, o simulador usa respostas de exemplo.
+ */
+(function () {
+'use strict';
+
+var $ = function (id) { return document.getElementById(id); };
+var app = $('app'), vp = $('vp'), out = $('out'), frm = $('frm'), cmdEl = $('cmd'), pl = $('pl'), iw = $('iw');
+
+/* =========================================================
+ * UTILIDADES
+ * ========================================================= */
+function pad(s, n) { s = String(s); while (s.length < n) s += ' '; return s; }
+function lpad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+function inArr(a, v) { for (var i = 0; i < a.length; i++) { if (a[i] === v) return true; } return false; }
+function lc(s) { return String(s == null ? '' : s).toLowerCase(); }
+function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function hash(s) { var h = 7; s = String(s); for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) % 2147483647; } return h; }
+function hex2(n) { var s = (n & 255).toString(16); return s.length < 2 ? '0' + s : s; }
+function trim(s) { return String(s).replace(/^\s+|\s+$/g, ''); }
+function starts(s, p) { return String(s).indexOf(p) === 0; }
+function now() { return new Date().getTime(); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function isIPv4(s) {
+  var m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(String(s));
+  if (!m) return false;
+  for (var i = 1; i <= 4; i++) { if (+m[i] > 255) return false; }
+  return true;
+}
+function ipn(ip) { var p = ip.split('.'); return (+p[0]) * 16777216 + (+p[1]) * 65536 + (+p[2]) * 256 + (+p[3]); }
+function andIP(a, m) { var x = a.split('.'), y = m.split('.'), r = []; for (var i = 0; i < 4; i++) r.push((+x[i]) & (+y[i])); return r.join('.'); }
+function bcastIP(a, m) { var x = a.split('.'), y = m.split('.'), r = []; for (var i = 0; i < 4; i++) r.push(((+x[i]) | (~(+y[i]) & 255)) & 255); return r.join('.'); }
+function sameNet(a, b, m) { return isIPv4(a) && isIPv4(b) && isIPv4(m) && andIP(a, m) === andIP(b, m); }
+function maskBits(m) { var n = ipn(m), c = 0; for (var i = 31; i >= 0; i--) { if (Math.floor(n / Math.pow(2, i)) % 2 === 1) c++; else break; } return c; }
+function validMask(m) { if (!isIPv4(m)) return false; var b = maskBits(m); return ipn(m) === (b === 0 ? 0 : Math.pow(2, 32) - Math.pow(2, 32 - b)); }
+function isPrivate(ip) {
+  return /^10\./.test(ip) || /^192\.168\./.test(ip) || /^172\.(1[6-9]|2\d|3[01])\./.test(ip) ||
+    /^169\.254\./.test(ip) || /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip);
+}
+function store(k, v) {
+  try {
+    if (v === undefined) return window.localStorage.getItem(k);
+    window.localStorage.setItem(k, v);
+  } catch (e) { return null; }
+  return null;
+}
+var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function two(n) { return n < 10 ? '0' + n : '' + n; }
+function fmtLong(d) { return DIAS[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear() + ' ' + two(d.getHours()) + ':' + two(d.getMinutes()) + ':' + two(d.getSeconds()); }
+function fmtShort(d) { return two(d.getDate()) + '/' + two(d.getMonth() + 1) + '/' + d.getFullYear(); }
+function fmtTime(d) { return two(d.getHours()) + ':' + two(d.getMinutes()); }
+
+/* Divide uma linha respeitando aspas: netsh interface ip set address "Wi-Fi" dhcp */
+function tokenize(s) {
+  var outA = [], cur = '', q = false, has = false, ch;
+  for (var i = 0; i < s.length; i++) {
+    ch = s.charAt(i);
+    if (ch === '"') { q = !q; has = true; continue; }
+    if (!q && /\s/.test(ch)) { if (cur || has) { outA.push(cur); cur = ''; has = false; } continue; }
+    cur += ch;
+  }
+  if (cur || has) outA.push(cur);
+  return outA;
+}
+function splitPipe(s) {
+  var parts = [], cur = '', q = false, ch;
+  for (var i = 0; i < s.length; i++) {
+    ch = s.charAt(i);
+    if (ch === '"') q = !q;
+    if (ch === '|' && !q) { parts.push(trim(cur)); cur = ''; continue; }
+    cur += ch;
+  }
+  parts.push(trim(cur));
+  return parts;
+}
+
+/* Requisição HTTP com tempo limite (XMLHttpRequest funciona até em navegadores antigos) */
+function xget(url, timeout, cb) {
+  var done = false, x;
+  function fin(err, txt) { if (done) return; done = true; cb(err, txt); }
+  try {
+    x = new XMLHttpRequest();
+    x.open('GET', url, true);
+    try { x.timeout = timeout; } catch (e0) { /* navegadores antigos */ }
+    x.onreadystatechange = function () {
+      if (x.readyState === 4) {
+        if (x.status >= 200 && x.status < 300) fin(null, x.responseText); else fin(new Error('http ' + x.status));
+      }
+    };
+    x.ontimeout = function () { fin(new Error('timeout')); };
+    x.onerror = function () { fin(new Error('erro')); };
+    x.send();
+    setTimeout(function () { if (!done) { try { x.abort(); } catch (e1) {} fin(new Error('timeout')); } }, timeout + 300);
+  } catch (e) { setTimeout(function () { fin(e); }, 0); }
+}
+
+/* =========================================================
+ * ESTADO DO COMPUTADOR SIMULADO
+ * Cada celular vira um PC diferente do laboratório (IP .101 a .199)
+ * ========================================================= */
+var idn = parseInt(store('lab.n'), 10);
+if (!(idn >= 101 && idn <= 199) || idn === 137) { idn = rnd(101, 199); if (idn === 137) idn = 138; store('lab.n', String(idn)); }
+var macTail = store('lab.mac');
+if (!macTail || !/^[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}$/.test(macTail)) {
+  macTail = [hex2(rnd(0, 255)), hex2(rnd(0, 255)), hex2(rnd(0, 255))].join('-').toUpperCase();
+  store('lab.mac', macTail);
+}
+
+var GW = '192.168.0.1';
+var LAN = '192.168.0.0', LANMASK = '255.255.255.0';
+var DEF_DNS = ['8.8.8.8', '8.8.4.4'];
+var FONTS = [12.5, 11, 14, 16];
+
+var S = {
+  edu: true, mode: 'cmd', nsType: 'A', nsServer: null,
+  hostname: 'ETEMB-PC' + idn, user: 'aluno',
+  wifi: null, eth: null, dhcpDns: DEF_DNS.slice(0),
+  released: false, apipaForced: false, scn: 'normal', ticket: 0, showAns: false,
+  badDns: [], winsock: false, arp: [], uroutes: [], cache: {}, shares: [],
+  hist: [], hi: 0, job: null, cap: null, cols: 60, fi: 0,
+  net: 'checking', pub: '', isp: '', rtt: 14 + (idn % 9),
+  conns: [], rx: 0, tx: 0, ssh: null, nmapWarned: false, boot: now(), tabMatches: null
+};
+var fiStored = parseInt(store('lab.font'), 10);
+if (fiStored >= 0 && fiStored < FONTS.length) S.fi = fiStored;
+
+var APIPA = '169.254.' + (hash(S.hostname) % 254 + 1) + '.' + (hash(macTail) % 254 + 1);
+var LL6 = 'fe80::' + hex2(hash('a' + macTail)) + hex2(idn) + ':' + hex2(hash('b' + macTail)) + 'ff:fe' + macTail.slice(3, 5).toLowerCase() + ':' + macTail.slice(6).replace('-', '').toLowerCase();
+
+function freshWifi() {
+  return {
+    name: 'Wi-Fi', desc: 'Intel(R) Wi-Fi 6 AX201 160MHz', mac: '3C-52-82-' + macTail, idx: 5, up: true,
+    dhcp: true, ip: '192.168.0.' + idn, mask: LANMASK, gw: GW, dns: S.dhcpDns.slice(0), dnsDhcp: true,
+    guid: '{8A41F920-4C1B-401A-9F22-' + ('000000000000' + (hash(macTail) % 999999999999)).slice(-12) + '}'
+  };
+}
+function freshEth() {
+  return {
+    name: 'Ethernet', desc: 'Realtek PCIe GbE Family Controller', mac: '00-E0-4C-68-' + hex2(idn).toUpperCase() + '-' + hex2(hash(macTail)).toUpperCase(),
+    idx: 12, up: false, dhcp: true, ip: '', mask: '', gw: '', dns: [], dnsDhcp: true,
+    guid: '{C1D2E3F4-1111-4A2B-8C3D-' + ('000000000000' + (hash('e' + macTail) % 999999999999)).slice(-12) + '}'
+  };
+}
+S.wifi = freshWifi();
+S.eth = freshEth();
+S.leaseStart = new Date(now() - rnd(1, 5) * 3600000);
+
+function noIP() { return S.released; }
+function apipaOn() { return !S.released && (S.scn === 'apipa' || S.apipaForced); }
+function myIP() { if (S.released) return ''; if (apipaOn()) return APIPA; return S.wifi.ip; }
+function myMask() { if (S.released) return ''; if (apipaOn()) return '255.255.0.0'; return S.wifi.mask; }
+function myGW() { if (S.released || apipaOn()) return ''; return S.wifi.gw; }
+function myDNS() { if (S.released || apipaOn()) return []; return S.wifi.dns; }
+
+/* Hosts que existem na rede do laboratório 192.168.0.0/24 */
+function lanHost(ip) {
+  if (!sameNet(ip, LAN, LANMASK)) return null;
+  var o = +ip.split('.')[3];
+  if (o === 1) return { name: 'roteador.etemb.local', mac: 'c0-25-e9-44-12-90', vendor: 'Tp-link Technologies', ttl: 64, ports: [53, 80, 443] };
+  if (o === 10) return { name: 'srv-lab.etemb.local', mac: 'f8-bc-12-4a-90-11', vendor: 'Dell', ttl: 64, noPing: true, ports: [22, 139, 445, 3389] };
+  if (o === 20) return { name: 'portal.etemb.local', mac: '52-54-00-1d-7a-20', vendor: 'QEMU virtual NIC', ttl: 64, ports: S.scn === 'servico' ? [22] : [22, 80, 443] };
+  if (o === 50) return { name: 'impressora.etemb.local', mac: '00-1b-a9-3e-55-01', vendor: 'Brother Industries', ttl: 64, ports: [80, 443, 631, 9100] };
+  if (o === 137) return { name: 'NOTEBOOK-VISITANTE', mac: 'a0-36-bc-77-0e-15', vendor: 'ASUSTek Computer', ttl: 128, ports: [135, 445], visitor: true };
+  if (o >= 100 && o <= 199) {
+    if (o === idn) return { name: S.hostname + '.etemb.local', mac: lc(S.wifi.mac), vendor: 'Intel Corporate', ttl: 128, ports: [135, 139, 445], self: true };
+    return { name: 'ETEMB-PC' + o + '.etemb.local', mac: '3c-52-82-' + hex2(hash('m' + o)) + '-' + hex2(hash('x' + o)) + '-' + hex2(o), vendor: 'Intel Corporate', ttl: 128, ports: [135, 139, 445] };
+  }
+  return null;
+}
+var LOCAL_NAMES = {
+  'srv-lab': '192.168.0.10', 'srv-lab.etemb.local': '192.168.0.10',
+  'portal': '192.168.0.20', 'portal.etemb.local': '192.168.0.20',
+  'roteador': GW, 'roteador.etemb.local': GW,
+  'impressora': '192.168.0.50', 'impressora.etemb.local': '192.168.0.50'
+};
+
+/* ARP */
+function arpFind(ip) { for (var i = 0; i < S.arp.length; i++) { if (S.arp[i].ip === ip) return i; } return -1; }
+function arpMacFor(ip) {
+  if (S.scn === 'spoof' && ip === GW) return 'a0-36-bc-77-0e-15';
+  var h = lanHost(ip); return h ? h.mac : null;
+}
+function learnArp(ip) {
+  var h = lanHost(ip);
+  if (!h || h.self || ip === myIP()) return;
+  var i = arpFind(ip), mac = arpMacFor(ip);
+  if (i === -1) S.arp.push({ ip: ip, mac: mac, type: 'dinâmico' });
+  else S.arp[i].mac = mac;
+}
+function seedArp() {
+  S.arp = [];
+  learnArp(GW); learnArp('192.168.0.10'); learnArp('192.168.0.50');
+  learnArp('192.168.0.' + (idn === 120 ? 121 : 120));
+  if (S.scn === 'spoof') learnArp('192.168.0.137');
+}
+
+/* DNS cache (ipconfig /displaydns) */
+function seedCache() {
+  S.cache = {};
+  cachePut('www.google.com', { A: ['142.250.79.36'], AAAA: [], CNAME: [] });
+  cachePut('ifconfig.me', { A: ['34.160.111.145'], AAAA: [], CNAME: [] });
+  cachePut('srv-lab.etemb.local', { A: ['192.168.0.10'], AAAA: [], CNAME: [] });
+}
+function cachePut(name, res) { if (res && res.A && res.A.length) S.cache[lc(name)] = { res: res, t: now(), ttl: rnd(120, 290) }; }
+
+/* Conexões para o netstat (ME = IP desta máquina) */
+var PROCS = {
+  0: ['System Idle Process', 8], 4: ['System', 140], 640: ['wininit.exe', 6912], 772: ['lsass.exe', 21480],
+  1012: ['svchost.exe', 32104], 2140: ['svchost.exe', 9920], 3320: ['cmd.exe', 4876], 3988: ['svchost.exe', 7212],
+  4560: ['explorer.exe', 148220], 5876: ['svchost.exe', 11024], 6340: ['chrome.exe', 312540], 6412: ['chrome.exe', 98316],
+  8120: ['OneDrive.exe', 64876], 9932: ['WhatsApp.exe', 187660], 10456: ['powershell.exe', 82204]
+};
+var SVC = { 80: 'http', 443: 'https', 53: 'domain', 135: 'epmap', 139: 'netbios-ssn', 445: 'microsoft-ds', 137: 'netbios-ns', 138: 'netbios-dgm', 22: 'ssh', 3389: 'ms-wbt-server', 1900: 'ssdp', 5353: 'mdns', 5355: 'llmnr', 631: 'ipp' };
+function eph() { return rnd(49800, 64900); }
+function seedConns() {
+  S.conns = [
+    { p: 'TCP', l: '0.0.0.0', lp: 135, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 1012 },
+    { p: 'TCP', l: '0.0.0.0', lp: 445, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 4 },
+    { p: 'TCP', l: '0.0.0.0', lp: 5040, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 5876 },
+    { p: 'TCP', l: '0.0.0.0', lp: 49664, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 772 },
+    { p: 'TCP', l: '0.0.0.0', lp: 49665, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 640 },
+    { p: 'TCP', l: 'ME', lp: 139, r: '0.0.0.0', rp: 0, st: 'LISTENING', pid: 4 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '142.250.79.36', rp: 443, st: 'ESTABLISHED', pid: 6340 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '142.250.219.5', rp: 443, st: 'ESTABLISHED', pid: 6340 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '172.217.29.110', rp: 443, st: 'ESTABLISHED', pid: 6412 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '157.240.12.60', rp: 443, st: 'ESTABLISHED', pid: 9932 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '20.190.159.4', rp: 443, st: 'ESTABLISHED', pid: 8120 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '20.42.65.92', rp: 443, st: 'CLOSE_WAIT', pid: 6340 },
+    { p: 'TCP', l: 'ME', lp: eph(), r: '23.218.212.69', rp: 80, st: 'TIME_WAIT', pid: 0 },
+    { p: 'UDP', l: '0.0.0.0', lp: 5353, r: '*', rp: '*', st: '', pid: 2140 },
+    { p: 'UDP', l: '0.0.0.0', lp: 5355, r: '*', rp: '*', st: '', pid: 2140 },
+    { p: 'UDP', l: '127.0.0.1', lp: 1900, r: '*', rp: '*', st: '', pid: 3988 },
+    { p: 'UDP', l: 'ME', lp: 137, r: '*', rp: '*', st: '', pid: 4 },
+    { p: 'UDP', l: 'ME', lp: 138, r: '*', rp: '*', st: '', pid: 4 },
+    { p: 'UDP', l: 'ME', lp: 1900, r: '*', rp: '*', st: '', pid: 3988 }
+  ];
+}
+function addConn(ip, port, st, pid) {
+  S.conns.splice(13, 0, { p: 'TCP', l: 'ME', lp: eph(), r: ip, rp: port, st: st || 'TIME_WAIT', pid: pid == null ? 0 : pid });
+  if (S.conns.length > 30) S.conns.splice(13, 1);
+}
+
+function resetNet() {
+  S.dhcpDns = DEF_DNS.slice(0);
+  S.wifi = freshWifi(); S.eth = freshEth();
+  S.released = false; S.apipaForced = false; S.badDns = []; S.winsock = false; S.uroutes = [];
+  seedArp(); seedCache();
+}
+seedConns(); seedArp(); seedCache();
+S.rx = 1180000000 + rnd(0, 90000000); S.tx = 96000000 + rnd(0, 9000000);
+
+/* =========================================================
+ * SAÍDA NO TERMINAL
+ * ========================================================= */
+function toBottom() { vp.scrollTop = vp.scrollHeight; }
+function line(text, cls) {
+  text = text == null ? '' : String(text);
+  if (S.cap) { var parts = text.split('\n'); for (var i = 0; i < parts.length; i++) S.cap.push(parts[i]); return; }
+  var d = document.createElement('div');
+  d.className = 'l' + (cls ? ' ' + cls : '');
+  d.appendChild(document.createTextNode(text));
+  out.appendChild(d);
+  if (out.childNodes.length > 2500) { for (var k = 0; k < 400; k++) out.removeChild(out.firstChild); }
+  toBottom();
+}
+function lines(arr) { for (var i = 0; i < arr.length; i++) line(arr[i]); }
+function box(kind, title, html, force) {
+  if (S.cap) return;
+  if (!force && kind === '' && !S.edu) return;
+  var d = document.createElement('div');
+  d.className = 'note' + (kind ? ' ' + kind : '');
+  d.innerHTML = '<span class="nt">' + esc(title) + '</span>' + html;
+  out.appendChild(d);
+  toBottom();
+}
+function note(title, html) { box('', title, html, false); }
+function c(s) { return '<code>' + esc(s) + '</code>'; }
+
+/* Linha no estilo do ipconfig: "Endereço IPv4. . . . . . . : 192.168.0.115" */
+function kv(label, val, ind) {
+  ind = ind == null ? '   ' : ind;
+  var W = S.cols >= 68 ? 47 : Math.max(ind.length + label.length + 3, Math.min(47, S.cols - 22));
+  var s = ind + label;
+  if (s.length < W) { s += ' '; var dot = true; while (s.length < W) { s += dot ? '.' : ' '; dot = !dot; } }
+  return s.replace(/\s+$/, '') + ' : ' + (val == null ? '' : val);
+}
+function measureCols() {
+  var sp = document.createElement('span');
+  sp.style.position = 'absolute'; sp.style.visibility = 'hidden'; sp.style.whiteSpace = 'pre';
+  sp.appendChild(document.createTextNode('MMMMMMMMMMMMMMMMMMMM'));
+  out.appendChild(sp);
+  var cw = sp.getBoundingClientRect().width / 20;
+  out.removeChild(sp);
+  var w = out.clientWidth || vp.clientWidth || 360;
+  S.cols = Math.max(28, Math.floor(w / (cw || 8)));
+}
+
+/* =========================================================
+ * PROCESSOS EM ANDAMENTO (ping -t, tracert...) e Ctrl+C
+ * ========================================================= */
+function startJob(onStop) {
+  if (S.job) interrupt(true);
+  var j = { timers: [], alive: true, onStop: onStop || null };
+  S.job = j; setBusy(true);
+  return j;
+}
+function later(j, fn, ms) {
+  if (!j.alive) return;
+  var id = setTimeout(function () { if (j.alive) fn(); }, ms);
+  j.timers.push(id);
+}
+function endJob(j) {
+  if (!j) return;
+  j.alive = false;
+  for (var i = 0; i < j.timers.length; i++) clearTimeout(j.timers[i]);
+  if (S.job === j) { S.job = null; setBusy(false); }
+}
+function interrupt(silent) {
+  if (S.job) {
+    var j = S.job;
+    endJob(j);
+    if (j.onStop && !silent) j.onStop();
+    if (!silent) line('^C');
+    return true;
+  }
+  if (!silent && S.mode === 'nslookup') { line('^C'); setMode('cmd'); return true; }
+  if (!silent && (S.mode === 'sshyes' || S.mode === 'sshpass')) { line('^C'); setMode('cmd'); return true; }
+  if (!silent) line(promptStr() + cmdEl.value + '^C', 'echo');
+  cmdEl.value = '';
+  return false;
+}
+function setBusy(b) { var el = $('bCC'); if (b) el.className = 'k sm cc live'; else el.className = 'k sm cc'; }
+
+/* =========================================================
+ * REDE REAL (quando o celular consegue acessar a internet)
+ * ========================================================= */
+function measure(cb) {
+  if (S.net !== 'real') { cb(null); return; }
+  var t = now();
+  xget('https://dns.google/resolve?name=example.com&type=A&r=' + Math.random(), 2200, function (err) {
+    if (err) { cb(null); return; }
+    var ms = now() - t;
+    S.rtt = Math.round(S.rtt * 0.6 + clamp(ms, 3, 400) * 0.4);
+    cb(ms);
+  });
+}
+function detectNet() {
+  xget('https://api.ipify.org?format=json', 3500, function (err, txt) {
+    var ip = null;
+    if (!err) { try { ip = JSON.parse(txt).ip; } catch (e) { ip = null; } }
+    if (ip && isIPv4(ip)) {
+      S.net = 'real'; S.pub = ip;
+      measure(function () {});
+      xget('https://ipwho.is/' + ip, 3000, function (e2, t2) {
+        if (e2) return;
+        try { var j = JSON.parse(t2); if (j && j.connection && j.connection.isp) { S.isp = j.connection.isp; } } catch (e3) {}
+      });
+    } else {
+      S.net = 'sim'; S.pub = '203.0.113.' + (idn - 60);
+    }
+    updateStatus();
+  });
+}
+function updateStatus() {
+  var dot = $('sDot'), sn = $('sNet');
+  if (S.net === 'real') { dot.className = 'dot ok'; sn.textContent = 'Internet real: DNS e tempos reais'; }
+  else if (S.net === 'sim') { dot.className = 'dot sim'; sn.textContent = 'Modo offline: respostas de exemplo'; }
+  else { dot.className = 'dot'; sn.textContent = 'verificando a conexão…'; }
+  $('sPub').textContent = S.pub || '…';
+  var tk = $('sTk');
+  if (S.scn !== 'normal') { tk.hidden = false; tk.textContent = 'Chamado #' + S.ticket + ' aberto'; } else tk.hidden = true;
+}
+
+/* =========================================================
+ * ALCANCE DE REDE: decide se um IP responde, de acordo com o cenário
+ * ========================================================= */
+function destOffset(ip) {
+  if (/^(8\.8\.|142\.25[01]\.|172\.217\.|216\.58\.|192\.178\.|1\.1\.1\.1|1\.0\.0\.1)/.test(ip)) return 0;
+  if (/^(157\.240\.|31\.13\.)/.test(ip)) return 2;
+  if (/^(20\.201\.|20\.206\.)/.test(ip)) return 4;
+  if (/^(208\.80\.|13\.107\.|20\.|40\.|52\.|23\.)/.test(ip)) return 105 + (hash(ip) % 30);
+  return 8 + (hash(ip) % 70);
+}
+function simMs(ip) { return Math.max(2, S.rtt + destOffset(ip) + rnd(-3, 4)); }
+function ttlFor(ip) {
+  if (/^(8\.8\.|142\.25[01]\.|172\.217\.|216\.58\.|192\.178\.)/.test(ip)) return 117;
+  if (/^1\.(1\.1\.1|0\.0\.1)$/.test(ip)) return 57;
+  return 64 - 8 - (hash(ip) % 9);
+}
+function physOK() {
+  var me = myIP();
+  return sameNet(me, LAN, LANMASK) && !inArr(['192.168.0.0', '192.168.0.255', GW, '192.168.0.10', '192.168.0.20', '192.168.0.50'], me);
+}
+function reach(ip) {
+  if (S.scn === 'tcpip') return { st: 'fail' };
+  if (/^127\./.test(ip)) return { st: 'ok', ms: 0, ttl: 128 };
+  var me = myIP();
+  if (!me) return { st: 'fail' };
+  if (ip === me) return { st: 'ok', ms: 0, ttl: 128 };
+  if (apipaOn()) return { st: 'fail' };
+  var mask = myMask(), gw = myGW();
+  if (sameNet(ip, me, mask)) {
+    if (!physOK() || !sameNet(ip, LAN, LANMASK)) return { st: 'unreach' };
+    if (S.scn === 'lan') return { st: 'timeout' };
+    var h = lanHost(ip);
+    if (!h) return { st: 'unreach' };
+    learnArp(ip);
+    if (h.noPing) return { st: 'timeout' };
+    return { st: 'ok', ms: rnd(0, 3), ttl: h.ttl, lan: true };
+  }
+  if (!gw) return { st: 'fail' };
+  if (!physOK() || !sameNet(gw, me, mask) || gw !== GW) return { st: 'unreach' };
+  if (S.scn === 'lan') return { st: 'timeout' };
+  learnArp(GW);
+  if (/^10\.91\.150\./.test(ip)) return ip === '10.91.150.10' ? { st: 'ok', ms: rnd(3, 6), ttl: 126 } : { st: 'timeout' };
+  if (isPrivate(ip)) return { st: 'timeout' };
+  if (S.scn === 'wan') return { st: 'timeout' };
+  if (S.scn === 'perda' && Math.random() < 0.4) return { st: 'timeout', loss: true };
+  return { st: 'ok', ms: simMs(ip), ttl: ttlFor(ip), ext: true };
+}
+/* Porta TCP aberta? (Test-NetConnection, curl, ssh, nmap) */
+function portState(ip, port) {
+  var r = reach(ip);
+  if (r.st === 'fail') return 'fail';
+  if (r.st === 'unreach') return 'unreach';
+  var h = lanHost(ip);
+  if (h) {
+    if (r.st === 'timeout' && !h.noPing) return 'timeout';
+    return inArr(h.ports, port) ? 'open' : 'closed';
+  }
+  if (r.st === 'timeout' && !r.loss) return 'timeout';
+  if (/^127\./.test(ip) || ip === myIP()) return inArr([135, 139, 445, 5040], port) ? 'open' : 'closed';
+  if (/^10\.91\.150\.10$/.test(ip)) return inArr([80, 443, 3389], port) ? 'open' : 'closed';
+  if (/^(8\.8\.8\.8|8\.8\.4\.4|1\.1\.1\.1|1\.0\.0\.1)$/.test(ip)) return inArr([53, 443, 853], port) ? 'open' : 'timeout';
+  return inArr([80, 443], port) ? 'open' : 'timeout';
+}
+
+/* =========================================================
+ * DNS: consulta real (DNS-over-HTTPS) com reserva offline
+ * ========================================================= */
+var DNSDB = {
+  'google.com': { A: ['142.250.79.46'], AAAA: ['2800:3f0:4001:82b::200e'], MX: ['10 smtp.google.com.'], NS: ['ns1.google.com.', 'ns2.google.com.', 'ns3.google.com.', 'ns4.google.com.'], TXT: ['"v=spf1 include:_spf.google.com ~all"'] },
+  'www.google.com': { A: ['142.250.79.36'], AAAA: ['2800:3f0:4001:810::2004'] },
+  'gmail.com': { A: ['142.250.219.5'], AAAA: ['2800:3f0:4001:82e::2005'], MX: ['5 gmail-smtp-in.l.google.com.', '10 alt1.gmail-smtp-in.l.google.com.', '20 alt2.gmail-smtp-in.l.google.com.', '30 alt3.gmail-smtp-in.l.google.com.', '40 alt4.gmail-smtp-in.l.google.com.'], NS: ['ns1.google.com.', 'ns2.google.com.'], TXT: ['"v=spf1 redirect=_spf.google.com"'] },
+  'dns.google': { A: ['8.8.8.8', '8.8.4.4'], AAAA: ['2001:4860:4860::8888', '2001:4860:4860::8844'] },
+  'one.one.one.one': { A: ['1.1.1.1', '1.0.0.1'], AAAA: ['2606:4700:4700::1111'] },
+  'www.youtube.com': { CNAME: ['youtube-ui.l.google.com.'], A: ['142.250.79.78', '142.250.218.14'], AAAA: ['2800:3f0:4001:80e::200e'] },
+  'youtube.com': { A: ['142.250.79.78'], AAAA: ['2800:3f0:4001:80e::200e'] },
+  'microsoft.com': { A: ['20.236.44.162', '20.70.246.20'], MX: ['10 microsoft-com.mail.protection.outlook.com.'], NS: ['ns1-39.azure-dns.com.'] },
+  'www.microsoft.com': { CNAME: ['www.microsoft.com-c-3.edgekey.net.', 'e13678.dscb.akamaiedge.net.'], A: ['23.45.120.88'] },
+  'outlook.com': { A: ['52.96.165.18'], MX: ['5 outlook-com.olc.protection.outlook.com.'] },
+  'www.wikipedia.org': { A: ['208.80.154.224'], AAAA: ['2620:0:861:ed1a::1'] },
+  'www.gov.br': { A: ['161.148.164.31'] },
+  'gov.br': { A: ['161.148.164.31'], MX: ['10 mx.gov.br.'] },
+  'github.com': { A: ['20.201.28.151'] },
+  'www.github.com': { CNAME: ['github.com.'], A: ['20.201.28.151'] },
+  'www.instagram.com': { CNAME: ['z-p42-instagram.c10r.instagram.com.'], A: ['157.240.12.174'], AAAA: ['2a03:2880:f212:c5:face:b00c:0:4420'] },
+  'www.facebook.com': { CNAME: ['star-mini.c10r.facebook.com.'], A: ['157.240.12.35'], AAAA: ['2a03:2880:f112:83:face:b00c:0:25de'] },
+  'www.whatsapp.com': { CNAME: ['mmx-ds.cdn.whatsapp.net.'], A: ['157.240.12.60'] },
+  'ifconfig.me': { A: ['34.160.111.145'] },
+  'internetbeacon.msedge.net': { A: ['13.107.4.52'] },
+  'www.uol.com.br': { A: ['200.147.35.149'] },
+  'www.globo.com': { A: ['186.192.83.12'] }
+};
+var REV = { '8.8.8.8': 'dns.google', '8.8.4.4': 'dns.google', '1.1.1.1': 'one.one.one.one', '1.0.0.1': 'one.one.one.one', '208.67.222.222': 'dns.opendns.com', '9.9.9.9': 'dns9.quad9.net', '20.201.28.151': 'lb-20-201-28-151-brazilsouth.github.com', '208.80.154.224': 'text-lb.eqiad.wikimedia.org' };
+var KNOWN_DNS = { '8.8.8.8': 'dns.google', '8.8.4.4': 'dns.google', '1.1.1.1': 'one.one.one.one', '1.0.0.1': 'one.one.one.one', '9.9.9.9': 'dns9.quad9.net', '208.67.222.222': 'resolver1.opendns.com', '192.168.0.1': 'UnKnown' };
+var TLDS = ['com', 'br', 'org', 'net', 'edu', 'gov', 'io', 'me', 'dev', 'app', 'info', 'tv', 'co', 'us', 'uk', 'pt', 'ai', 'google', 'local', 'online', 'site', 'tech', 'xyz', 'de', 'fr', 'es', 'it', 'jp', 'ar', 'cl', 'mx'];
+
+function revName(ip) {
+  if (REV[ip]) return REV[ip];
+  var h = lanHost(ip);
+  if (h && !h.visitor) return h.name;
+  if (/^(142\.25[01]|172\.217|216\.58|192\.178)\./.test(ip)) return 'gru' + (10 + hash(ip) % 20) + 's' + (10 + hash('s' + ip) % 15) + '-in-f' + (+ip.split('.')[3] % 32) + '.1e100.net';
+  if (/^157\.240\./.test(ip)) return 'edge-star-mini-shv-01-gru2.facebook.com';
+  return null;
+}
+function simDNS(name, type) {
+  var e = DNSDB[name];
+  if (!e && starts(name, 'www.') && DNSDB[name.slice(4)] && type !== 'MX') e = { A: DNSDB[name.slice(4)].A, AAAA: DNSDB[name.slice(4)].AAAA || [] };
+  if (!e) {
+    var parts = name.split('.'), tld = parts[parts.length - 1];
+    if (parts.length < 2 || !inArr(TLDS, tld) || /[^a-z0-9.\-]/.test(name) || /\.local$/.test(name)) return null;
+    var h = hash(name);
+    var base = name.replace(/^www\./, '');
+    e = { A: ['104.' + (16 + h % 200) + '.' + ((h >> 8) % 256) + '.' + ((h >> 16) % 250 + 1)], MX: ['10 mx.' + base + '.'], NS: ['ns1.' + base + '.', 'ns2.' + base + '.'] };
+  }
+  return { A: (e.A || []).slice(0), AAAA: (e.AAAA || []).slice(0), MX: (e.MX || []).slice(0), NS: (e.NS || []).slice(0), TXT: (e.TXT || []).slice(0), CNAME: (e.CNAME || []).slice(0), PTR: [] };
+}
+function emptyRes() { return { A: [], AAAA: [], MX: [], NS: [], TXT: [], CNAME: [], PTR: [] }; }
+var TYPE_NUM = { 1: 'A', 28: 'AAAA', 15: 'MX', 2: 'NS', 16: 'TXT', 5: 'CNAME', 12: 'PTR' };
+function realDNS(name, type, cb) {
+  if (S.net !== 'real') { cb(null); return; }
+  xget('https://dns.google/resolve?name=' + encodeURIComponent(name) + '&type=' + type, 2600, function (err, txt) {
+    if (err) { cb(null); return; }
+    var j; try { j = JSON.parse(txt); } catch (e) { cb(null); return; }
+    if (!j) { cb(null); return; }
+    if (j.Status === 3) { cb({ nx: true }); return; }
+    var r = emptyRes();
+    var ans = j.Answer || [];
+    for (var i = 0; i < ans.length; i++) {
+      var t = TYPE_NUM[ans[i].type];
+      if (t && r[t]) r[t].push(String(ans[i].data));
+    }
+    cb({ res: r });
+  });
+}
+/* Situação do servidor DNS: ok | timeout | noroute */
+function dnsServerState(server) {
+  if (S.scn === 'tcpip' || noIP() || apipaOn()) return 'noroute';
+  if (inArr(S.badDns, server)) return 'timeout';
+  var r = reach(server);
+  if (r.st === 'fail' || r.st === 'unreach') return 'noroute';
+  if (r.st === 'timeout' && !r.loss) return 'timeout';
+  if (!KNOWN_DNS[server]) return 'timeout';
+  return 'ok';
+}
+/* resolve(nome, {type, server, cache}, cb(err, res)) — err: nx | timeout | noroute */
+function resolve(name, opt, cb) {
+  var ln = lc(name).replace(/\.$/, '');
+  var type = opt.type || 'A';
+  function done(err, res) { setTimeout(function () { cb(err, res); }, 0); }
+  if (isIPv4(ln)) { var r0 = emptyRes(); r0.A = [ln]; r0.literal = true; done(null, r0); return; }
+  if (ln === 'localhost') { var r1 = emptyRes(); r1.A = ['127.0.0.1']; r1.AAAA = ['::1']; done(null, r1); return; }
+  if (ln === lc(S.hostname) || ln === lc(S.hostname) + '.etemb.local') { var r2 = emptyRes(); r2.A = [myIP() || '127.0.0.1']; r2.AAAA = [LL6]; done(null, r2); return; }
+  var server = opt.server || myDNS()[0];
+  if (S.scn === 'tcpip' || noIP() || apipaOn() || !server) { done('noroute'); return; }
+  if (opt.cache && S.cache[ln] && type === 'A') { done(null, S.cache[ln].res); return; }
+  var st = dnsServerState(server);
+  if (st !== 'ok') { setTimeout(function () { cb(st); }, st === 'timeout' ? 1800 : 50); return; }
+  if (LOCAL_NAMES[ln]) { var r3 = emptyRes(); r3.A = [LOCAL_NAMES[ln]]; r3.local = true; cachePut(ln, r3); done(null, r3); return; }
+  if (/\.local$/.test(ln) || ln.indexOf('.') === -1) { done('nx'); return; }
+  realDNS(ln, type, function (real) {
+    if (real && real.nx) { cb('nx'); return; }
+    var res = real && real.res ? real.res : simDNS(ln, type);
+    if (!res) { cb('nx'); return; }
+    if (real && real.res) res.real = true;
+    if (type === 'A') cachePut(ln, res);
+    var ms = real ? 0 : rnd(40, 160);
+    setTimeout(function () { cb(null, res); }, ms);
+  });
+}
+
+/* =========================================================
+ * CENÁRIOS DE DEFEITO ("chamados de suporte")
+ * ========================================================= */
+var SCN = {
+  apipa: { t: 'IP 169.254 (sem DHCP)', step: 'Roteiro – passo 1 · Questão 12',
+    ticket: 'Maria, da secretaria: “O ícone da rede está com um triângulo amarelo e aparece Sem Internet. Ninguém mexeu em nada.”',
+    ans: 'O <code>ipconfig</code> mostra um IP 169.254.x.x (APIPA) e o gateway em branco: o computador não recebeu endereço do servidor DHCP. Solução: <code>ipconfig /release</code> e depois <code>ipconfig /renew</code>.' },
+  tcpip: { t: 'Pilha TCP/IP com defeito', step: 'Roteiro – passo 2',
+    ticket: 'Prof. Carlos: “Neste computador nada de rede funciona, nem a impressora. Os outros PCs da sala estão normais.”',
+    ans: 'Até o <code>ping 127.0.0.1</code> falha: o problema está na própria máquina (pilha TCP/IP / Winsock). Solução: <code>netsh winsock reset</code> e depois reiniciar com <code>shutdown /r /t 0</code>.' },
+  lan: { t: 'Sem comunicação com o gateway', step: 'Roteiro – passo 3',
+    ticket: 'João, laboratório 2: “A rede caiu só no meu computador. O colega do lado está navegando normal.”',
+    ans: 'O IP está correto, mas o <code>ping 192.168.0.1</code> (gateway) não responde. O problema é na rede local: cabo, porta do switch ou Wi-Fi. Nenhum comando resolve; é preciso verificar a parte física.' },
+  wan: { t: 'Internet do provedor fora', step: 'Roteiro – passo 4',
+    ticket: 'Coordenação: “A internet caiu no laboratório inteiro, mas a impressora de rede e o servidor continuam funcionando.”',
+    ans: 'O gateway responde, mas o <code>ping 8.8.8.8</code> não. O <code>tracert 8.8.8.8</code> para depois do salto 1: o problema está no roteador ou no provedor. Solução: verificar o modem e abrir chamado com o provedor.' },
+  dns: { t: 'Falha de DNS', step: 'Roteiro – passo 5 · Questão 11',
+    ticket: 'Usuário: “Consigo abrir o site pelo IP, mas não pelo nome.”',
+    ans: 'O <code>ping 8.8.8.8</code> funciona, mas o <code>ping www.google.com</code> não encontra o host. O DNS configurado (192.168.0.1, veja no <code>ipconfig /all</code>) não responde. Confirme com <code>nslookup www.google.com 8.8.8.8</code>. Solução: <code>netsh interface ip set dns "Wi-Fi" static 8.8.8.8</code>.' },
+  perda: { t: 'Perda de pacotes', step: 'Questão 13',
+    ticket: 'Professora Ana: “A internet está muito lenta e as videochamadas ficam travando.”',
+    ans: 'O <code>ping -n 10 8.8.8.8</code> mostra cerca de 40% de perda. O <code>pathping 8.8.8.8</code> mostra que a perda começa no salto 3, que é do provedor. Solução: abrir chamado com o provedor levando o resultado do pathping.' },
+  servico: { t: 'Serviço fora do ar', step: 'Roteiro – passo 6 · Questão 16',
+    ticket: 'Secretaria: “A internet funciona, mas o portal da escola (portal.etemb.local) não abre de jeito nenhum.”',
+    ans: 'O <code>ping portal.etemb.local</code> responde, mas <code>Test-NetConnection portal.etemb.local -Port 443</code> dá TcpTestSucceeded: False e o <code>curl -I https://portal.etemb.local</code> falha. A máquina está ligada; o serviço web parou. Solução: reiniciar o servidor web do portal.' },
+  spoof: { t: 'ARP spoofing', step: 'Seção 5 – arp (Segurança)',
+    ticket: 'Laboratório 1: “Depois que um visitante conectou o notebook na rede, os sites começaram a mostrar aviso de segurança.”',
+    ans: 'No <code>arp -a</code>, o gateway 192.168.0.1 aparece com o mesmo MAC do 192.168.0.137 (o notebook do visitante): ele está se passando pelo roteador. Solução: desconectar o notebook da rede e depois limpar a tabela com <code>arp -d *</code>.' }
+};
+var SCN_ORDER = ['apipa', 'tcpip', 'lan', 'wan', 'dns', 'perda', 'servico', 'spoof'];
+
+function openTicket(id) {
+  if (id === 'rand') id = SCN_ORDER[rnd(0, SCN_ORDER.length - 1)];
+  interrupt(true);
+  if (S.mode !== 'cmd' && S.mode !== 'ps') setMode('cmd');
+  S.scn = 'normal';
+  resetNet();
+  S.scn = id;
+  S.ticket = rnd(1000, 9999);
+  S.showAns = false;
+  if (id === 'dns') { S.dhcpDns = [GW]; S.wifi.dns = [GW]; S.badDns = [GW]; S.cache = {}; }
+  if (id === 'spoof') { seedArp(); }
+  if (id === 'lan' || id === 'wan') { S.cache = {}; }
+  updateStatus();
+  box('tk', 'Chamado de suporte #' + S.ticket, esc(SCN[id].ticket) + '<br><br>Descubra a causa usando os comandos da apostila. Siga o roteiro: comece pela própria máquina e vá se afastando. A resposta está em <b>Chamados</b>.', true);
+}
+function closeTicket(msg) {
+  S.scn = 'normal';
+  resetNet();
+  updateStatus();
+  if (msg) box('win', 'Chamado encerrado', msg, true);
+}
+function solved(how) {
+  var n = S.ticket;
+  S.scn = 'normal'; S.badDns = []; S.apipaForced = false;
+  updateStatus();
+  box('win', 'Problema resolvido · chamado #' + n, how, true);
+}
+
+/* =========================================================
+ * PROMPT, MODOS E EXECUÇÃO
+ * ========================================================= */
+function promptStr() {
+  if (S.mode === 'ps') return 'PS C:\\Users\\aluno> ';
+  if (S.mode === 'nslookup') return '> ';
+  if (S.mode === 'ssh') return (S.ssh ? S.ssh.user : 'aluno') + '@srv-lab:~$ ';
+  if (S.mode === 'sshyes' || S.mode === 'sshpass') return '';
+  return 'C:\\Users\\aluno>';
+}
+function setMode(m) {
+  S.mode = m;
+  pl.textContent = promptStr();
+  cmdEl.type = m === 'sshpass' ? 'password' : 'text';
+  $('wtitle').textContent = m === 'ps' ? 'Administrador: Windows PowerShell' : (m === 'ssh' ? 'aluno@srv-lab: ~ (ssh)' : 'Administrador: Prompt de Comando');
+}
+
+var CMD_NAMES = ['arp', 'cls', 'curl', 'date', 'echo', 'exit', 'getmac', 'help', 'hostname', 'ipconfig', 'net', 'netsh', 'netstat', 'nmap', 'nslookup', 'pathping', 'ping', 'powershell', 'route', 'shutdown', 'ssh', 'systeminfo', 'tasklist', 'time', 'tracert', 'ver', 'whoami', 'findstr'];
+var PS_NAMES = ['Test-NetConnection', 'Get-NetIPConfiguration', 'Get-NetAdapter', 'Clear-Host'];
+var LINUX_HINT = {
+  'ip': 'ipconfig (ou Get-NetIPConfiguration no PowerShell)', 'ifconfig': 'ipconfig', 'traceroute': 'tracert', 'mtr': 'pathping',
+  'dig': 'nslookup', 'host': 'nslookup', 'ss': 'netstat -ano', 'nc': 'Test-NetConnection host -Port N (PowerShell)', 'dhclient': 'ipconfig /release e ipconfig /renew',
+  'resolvectl': 'ipconfig /flushdns', 'man': 'comando /? (ex.: ping /?)', 'sudo': 'abrir o Prompt como administrador', 'ls': 'dir', 'grep': 'findstr', 'clear': 'cls', 'ps': 'tasklist'
+};
+var ASYNC = { ping: 1, tracert: 1, pathping: 1, nslookup: 1, 'test-netconnection': 1, tnc: 1, curl: 1, nmap: 1, ssh: 1, powershell: 1 };
+
+function submit() {
+  var raw = cmdEl.value;
+  cmdEl.value = '';
+  S.tabMatches = null;
+  if (S.mode === 'sshpass') { line(''); handleLine(raw); return; }
+  line(promptStr() + raw, 'echo');
+  handleLine(raw);
+}
+function handleLine(raw) {
+  var t = trim(raw);
+  if (S.job && S.mode !== 'sshpass') interrupt(true);
+  if (!t) return;
+  if (S.mode !== 'sshpass' && S.mode !== 'sshyes') { S.hist.push(t); if (S.hist.length > 100) S.hist.shift(); }
+  S.hi = S.hist.length;
+  if (S.mode === 'nslookup') { nsInteractive(t); return; }
+  if (S.mode === 'sshyes') { sshYes(t); return; }
+  if (S.mode === 'sshpass') { sshPass(t); return; }
+  if (S.mode === 'ssh') { linuxCmd(t); return; }
+  var parts = splitPipe(t);
+  if (parts.length > 1) { runPipe(parts); return; }
+  runCmd(t);
+}
+
+/* Executa um comando a partir dos botões (troca de modo se for preciso) */
+function quick(cmdline) {
+  closeModal();
+  interrupt(true);
+  var first = lc(tokenize(cmdline)[0] || '');
+  var isPS = inArr(['test-netconnection', 'tnc', 'get-netipconfiguration', 'gip', 'get-netadapter'], first);
+  if (S.mode === 'sshyes' || S.mode === 'sshpass') setMode('cmd');
+  if (S.mode === 'nslookup' || S.mode === 'ssh') {
+    line(promptStr() + 'exit', 'echo'); handleLine('exit');
+  }
+  if (isPS && S.mode === 'cmd') { line(promptStr() + 'powershell', 'echo'); psEnter(); }
+  line(promptStr() + cmdline, 'echo');
+  handleLine(cmdline);
+}
+
+function notRecognized(name, args) {
+  var ln = lc(name);
+  if (S.mode === 'ps') {
+    lines([name + ' : O termo \'' + name + '\' não é reconhecido como nome de cmdlet, função, arquivo de script', 'ou programa operável. Verifique a grafia do nome ou, se um caminho tiver sido incluído,', 'veja se o caminho está correto e tente novamente.']);
+  } else {
+    lines(['\'' + name + '\' não é reconhecido como um comando interno', 'ou externo, um programa operável ou um arquivo em lotes.']);
+  }
+  if (LINUX_HINT[ln]) {
+    note('Comando do Linux/macOS', c(name) + ' é usado no Linux/macOS. No Windows, o equivalente é: <b>' + esc(LINUX_HINT[ln]) + '</b>. (Veja o quadro-resumo na Apostila.) Dica: use ' + c('ssh aluno@192.168.0.10') + ' para praticar comandos do Linux no servidor do laboratório.');
+  } else if (inArr(['test-netconnection', 'tnc', 'get-netipconfiguration', 'gip', 'get-netadapter'], ln)) {
+    note('Comando do PowerShell', c(name) + ' só existe no PowerShell. Digite ' + c('powershell') + ' para entrar nele e depois repita o comando. Para voltar ao CMD, digite ' + c('exit') + '.');
+  } else {
+    note('Comando não encontrado', 'Confira se digitou certo. Digite ' + c('help') + ' para ver a lista de comandos ou toque em <b>Apostila</b>.');
+  }
+}
+
+function runCmd(t) {
+  var tk = tokenize(t);
+  if (!tk.length) return;
+  var name = lc(tk[0]), args = tk.slice(1);
+  var m = /^([a-z\-]+)(\/.+)$/.exec(name);
+  if (m) { name = m[1]; args.unshift(m[2]); }
+  if (args[0] === '/?' || (args[0] === '-?' && name !== 'ping') || (args[0] === '/help')) { showHelp(name); return; }
+  if (name === 'cls' || name === 'clear-host' || (name === 'clear' && S.mode === 'ps')) { out.innerHTML = ''; return; }
+  switch (name) {
+    case 'ipconfig': cIpconfig(args); break;
+    case 'ping': cPing(args, false); break;
+    case 'tracert': cTracert(args); break;
+    case 'pathping': cPathping(args); break;
+    case 'nslookup': cNslookup(args); break;
+    case 'netstat': cNetstat(args); break;
+    case 'arp': cArp(args); break;
+    case 'route': cRoute(args); break;
+    case 'hostname': cHostname(args); break;
+    case 'whoami': cWhoami(args); break;
+    case 'getmac': cGetmac(args); break;
+    case 'netsh': cNetsh(args); break;
+    case 'curl': case 'curl.exe': cCurl(args); break;
+    case 'tasklist': cTasklist(args); break;
+    case 'net': cNet(args); break;
+    case 'ssh': cSsh(args); break;
+    case 'systeminfo': cSysteminfo(); break;
+    case 'nmap': cNmap(args); break;
+    case 'help': case 'ajuda': cHelp(); break;
+    case 'ver': line(''); line('Microsoft Windows [versão 10.0.26100.6899]'); break;
+    case 'echo': line(args.length ? t.replace(/^\s*echo\s?/i, '') : 'ECHO está ativado.'); break;
+    case 'date': line(args[0] && lc(args[0]) === '/t' ? DIAS[new Date().getDay()].slice(0, 3) + ' ' + fmtShort(new Date()) : 'A data atual é: ' + fmtShort(new Date())); break;
+    case 'time': line(args[0] && lc(args[0]) === '/t' ? fmtTime(new Date()) : 'A hora atual é: ' + fmtTime(new Date()) + ':' + two(new Date().getSeconds()) + ',00'); break;
+    case 'shutdown': cShutdown(args); break;
+    case 'powershell': case 'pwsh': if (S.mode === 'ps') { line('(Você já está no PowerShell.)', 'sys'); } else psEnter(); break;
+    case 'exit':
+      if (S.mode === 'ps') { setMode('cmd'); line(''); }
+      else note('exit', 'No Windows, ' + c('exit') + ' fecharia a janela do Prompt. Aqui o simulador continua aberto.');
+      break;
+    case 'findstr': line('FINDSTR: Argumentos incorretos. Use findstr depois de | (ex.: ' + 'netstat -ano | findstr :443).'); break;
+    case 'dir': cDir(); break;
+    default:
+      if (S.mode === 'ps' && (name === 'test-netconnection' || name === 'tnc')) { cTnc(args); break; }
+      if (S.mode === 'ps' && (name === 'get-netipconfiguration' || name === 'gip')) { cGetNetIP(args); break; }
+      if (S.mode === 'ps' && name === 'get-netadapter') { cGetNetAdapter(); break; }
+      notRecognized(tk[0], args);
+  }
+}
+
+function runPipe(parts) {
+  var left = parts[0], name = lc(tokenize(left)[0] || '');
+  var asyncCmd = ASYNC[name] || (name === 'ipconfig' && /\/renew/i.test(left));
+  if (asyncCmd) {
+    runCmd(left);
+    note('Filtro com |', 'Neste simulador o filtro com ' + c('|') + ' funciona com comandos que respondem na hora (netstat, ipconfig, tasklist, arp, route...). O resultado acima saiu sem filtro.');
+    return;
+  }
+  S.cap = [];
+  try { runCmd(left); } catch (e) { S.cap = null; throw e; }
+  var res = S.cap; S.cap = null;
+  for (var i = 1; i < parts.length; i++) {
+    var ft = tokenize(parts[i]), fn = lc(ft[0] || ''), fa = ft.slice(1);
+    if (fn === 'findstr' || fn === 'find' || fn === 'select-string' || fn === 'sls') {
+      var ci = fn === 'select-string' || fn === 'sls', inv = false, pats = [];
+      for (var k = 0; k < fa.length; k++) {
+        var a = fa[k], la = lc(a);
+        if (la === '/i') ci = true;
+        else if (la === '/v') inv = true;
+        else if (starts(la, '/c:')) pats.push(a.slice(3));
+        else if (la === '-pattern') { /* ignora o nome do parâmetro */ }
+        else if (la.charAt(0) === '/' && la.length <= 3) { /* outras opções */ }
+        else if (fn === 'findstr') { var sp = a.split(/\s+/); for (var q = 0; q < sp.length; q++) if (sp[q]) pats.push(sp[q]); }
+        else pats.push(a);
+      }
+      if (!pats.length) { line(fn.toUpperCase() + ': Argumentos incorretos'); return; }
+      var flt = [];
+      for (var r = 0; r < res.length; r++) {
+        var L = ci ? lc(res[r]) : res[r], hit = false;
+        for (var p = 0; p < pats.length; p++) { if (L.indexOf(ci ? lc(pats[p]) : pats[p]) !== -1) { hit = true; break; } }
+        if (hit !== inv && trim(res[r]) !== '') flt.push(res[r]);
+      }
+      res = flt;
+    } else if (fn === 'more' || fn === 'out-host') {
+      /* passa adiante */
+    } else if (fn === 'sort' || fn === 'sort-object') {
+      res = res.slice(0).sort();
+    } else {
+      notRecognized(ft[0] || '', fa);
+      return;
+    }
+  }
+  lines(res);
+  if (S.edu && res.length === 0) note('findstr', 'Nenhuma linha contém o texto procurado. Lembre: o findstr diferencia maiúsculas de minúsculas; use ' + c('/i') + ' para ignorar.');
+  else if (S.edu && /findstr\s+:443/i.test(parts.join('|'))) {
+    var est = 0; for (var z = 0; z < res.length; z++) if (/ESTABLISHED/.test(res[z])) est++;
+    note('netstat + findstr', 'O ' + c('findstr :443') + ' mostrou só as linhas com a porta 443 (HTTPS). Há <b>' + est + '</b> conexões ESTABLISHED. A última coluna é o PID: descubra o programa com ' + c('tasklist | findstr PID') + '.');
+  }
+}
+
+/* =========================================================
+ * AJUDA
+ * ========================================================= */
+var HELP = {
+  ipconfig: ['USO:', '    ipconfig [/all | /release | /renew | /flushdns | /displaydns]', '', 'Opções:', '   /all         Exibe informações completas de configuração.', '   /release     Libera o endereço IPv4 do adaptador.', '   /renew       Renova o endereço IPv4 do adaptador.', '   /flushdns    Limpa o cache do DNS Resolver.', '   /displaydns  Exibe o conteúdo do cache do DNS Resolver.'],
+  ping: ['Uso: ping [-t] [-n contagem] [-l tamanho] [-4] [-6] nome_do_destino', '', 'Opções:', '    -t             Envia pacotes até ser interrompido (Ctrl+C).', '    -n contagem    Número de solicitações de eco a enviar.', '    -l tamanho     Tamanho do buffer de envio (bytes).', '    -4             Força o uso do IPv4.', '    -6             Força o uso do IPv6.'],
+  tracert: ['Uso: tracert [-d] [-h saltos_máximos] nome_do_destino', '', 'Opções:', '    -d                 Não resolve endereços para nomes de host.', '    -h saltos_máximos  Número máximo de saltos para procurar o destino.'],
+  pathping: ['Uso: pathping [-n] nome_do_destino', '', 'Opções:', '    -n    Não resolve endereços para nomes de host.'],
+  nslookup: ['Uso:', '   nslookup                     modo interativo', '   nslookup nome                consulta usando o servidor padrão', '   nslookup nome servidor       consulta usando outro servidor', '   nslookup -type=MX nome       consulta um tipo de registro', '', 'No modo interativo: set type=MX | server 1.1.1.1 | exit'],
+  netstat: ['Exibe estatísticas de protocolo e conexões de rede TCP/IP atuais.', '', 'NETSTAT [-a] [-b] [-e] [-n] [-o] [-r]', '', '  -a  Exibe todas as conexões e portas de escuta.', '  -b  Exibe o executável envolvido em cada conexão (administrador).', '  -e  Exibe estatísticas Ethernet.', '  -n  Exibe endereços e números de porta em formato numérico.', '  -o  Exibe a identificação do processo (PID) de cada conexão.', '  -r  Exibe a tabela de roteamento.'],
+  arp: ['Exibe e modifica as tabelas de conversão de endereços IP em endereços físicos (ARP).', '', 'ARP -a', 'ARP -d end_inet', 'ARP -d *', '', '  -a   Exibe as entradas ARP atuais.', '  -d   Exclui o host especificado. * exclui todos.'],
+  route: ['Manipula tabelas de roteamento de rede.', '', 'ROUTE [-p] [comando [destino] [MASK máscara] [gateway] [METRIC métrica]]', '', '  -p       Torna a rota persistente (com ADD).', '  PRINT    Imprime uma rota (PRINT -4 mostra só IPv4)', '  ADD      Adiciona uma rota', '  DELETE   Exclui uma rota', '', 'Exemplo: route add 10.10.0.0 mask 255.255.0.0 192.168.0.1'],
+  hostname: ['Imprime o nome do host atual.', '', 'hostname'],
+  whoami: ['WHOAMI [/USER | /GROUPS | /ALL]', '', '  /USER    Exibe o usuário e o SID.', '  /GROUPS  Exibe os grupos do usuário atual.', '  /ALL     Exibe usuário e grupos.'],
+  getmac: ['GETMAC [/V]', '', '  /V   Especifica que a saída deve exibir informações detalhadas.'],
+  netsh: ['Comandos disponíveis neste simulador:', '  netsh interface ip show config', '  netsh interface show interface', '  netsh wlan show interfaces', '  netsh wlan show profiles', '  netsh wlan show networks', '  netsh interface ip set address "Wi-Fi" dhcp', '  netsh interface ip set address "Wi-Fi" static IP MÁSCARA GATEWAY', '  netsh interface ip set dns "Wi-Fi" static 8.8.8.8', '  netsh interface ip set dns "Wi-Fi" dhcp', '  netsh winsock reset'],
+  curl: ['Uso: curl [opções] <url>', ' -I, --head     Mostra só o cabeçalho da resposta', ' -i, --include  Inclui o cabeçalho na saída', '', 'Exemplos: curl -I https://www.google.com | curl ifconfig.me'],
+  tasklist: ['TASKLIST', '', 'Exibe os processos em execução. Use com findstr para procurar um PID:', '  tasklist | findstr 6340'],
+  net: ['A sintaxe deste comando é:', '', 'NET [ SHARE | USE | VIEW ]', '', '  net view                       computadores visíveis na rede', '  net share                      pastas compartilhadas por este PC', '  net use Z: \\\\srv-lab\\pasta     mapeia uma pasta de rede', '  net use Z: /delete             remove o mapeamento'],
+  ssh: ['uso: ssh usuario@host', '', 'Exemplo: ssh aluno@192.168.0.10'],
+  systeminfo: ['SYSTEMINFO', '', 'Exibe a configuração do sistema operacional, incluindo placas de rede e IPs.'],
+  nmap: ['Uso: nmap [-sn] alvo', '', '  nmap 192.168.0.0/24    descobre hosts e portas abertas', '  nmap -sn 192.168.0.0/24 só descobre quais hosts estão ligados', '', 'Use somente em redes com autorização (Lei 12.737/2012).'],
+  shutdown: ['Uso: shutdown /r /t 0', '', '  /r     Reinicia o computador.', '  /t xx  Tempo antes de desligar (segundos).'],
+  'test-netconnection': ['Test-NetConnection [[-ComputerName] <nome>] [-Port <número>]', '', 'Exemplos:', '  Test-NetConnection www.google.com -Port 443', '  tnc 8.8.8.8'],
+  'get-netipconfiguration': ['Get-NetIPConfiguration', '', 'Mostra IP, gateway e DNS de cada interface (versão moderna do ipconfig).'],
+  'get-netadapter': ['Get-NetAdapter', '', 'Mostra as placas de rede, o status (Up/Down) e a velocidade do link.']
+};
+HELP.tnc = HELP['test-netconnection'];
+function showHelp(name) {
+  if (HELP[name]) { line(''); lines(HELP[name]); line(''); return; }
+  notRecognized(name, []);
+}
+function cHelp() {
+  lines(['', 'Comandos de rede disponíveis (Apostila 02). Use comando /? para ver as opções.', '',
+    '  IDENTIFICAÇÃO',
+    '  IPCONFIG     IP, máscara, gateway (/all /release /renew /flushdns /displaydns)',
+    '  HOSTNAME     Nome do computador',
+    '  WHOAMI       Usuário logado (/groups)',
+    '  GETMAC       Endereço MAC das placas (/v)',
+    '  NETSH        Configurar rede e ver o Wi-Fi',
+    '', '  TESTES',
+    '  PING         Testa a comunicação (-t -n -l -4 -6)',
+    '  TRACERT      Mostra os saltos até o destino (-d)',
+    '  PATHPING     Rota + perda de pacotes por salto',
+    '  CURL         Requisição a um site (-I) / IP público (curl ifconfig.me)',
+    '  POWERSHELL   Entra no PowerShell (Test-NetConnection, Get-NetAdapter...)',
+    '', '  ANÁLISE',
+    '  NSLOOKUP     Consulta DNS (-type=MX, modo interativo)',
+    '  NETSTAT      Conexões e portas (-a -n -o -b -r -e)',
+    '  TASKLIST     Processos (use com | findstr PID)',
+    '  ARP          Tabela IP x MAC (-a, -d)',
+    '  ROUTE        Tabela de rotas (print, add, delete)',
+    '', '  OUTROS',
+    '  NET          view, share, use',
+    '  SSH          Acesso remoto (ssh aluno@192.168.0.10)',
+    '  SYSTEMINFO   Dados do sistema e placas de rede',
+    '  NMAP         Varredura da rede do laboratório',
+    '  SHUTDOWN     /r /t 0 reinicia o computador',
+    '  CLS          Limpa a tela', '']);
+}
+
+/* =========================================================
+ * 1. IPCONFIG
+ * ========================================================= */
+function ipBlockEth(all) {
+  var e = S.eth;
+  line('Adaptador Ethernet ' + e.name + ':');
+  line('');
+  line(kv('Estado da mídia', 'mídia desconectada'));
+  line(kv('Sufixo DNS específico de conexão', ''));
+  if (all) {
+    line(kv('Descrição', e.desc));
+    line(kv('Endereço Físico', e.mac));
+    line(kv('DHCP Habilitado', e.dhcp ? 'Sim' : 'Não'));
+    line(kv('Configuração Automática Habilitada', 'Sim'));
+  }
+  line('');
+}
+function ipBlockWifi(all) {
+  var w = S.wifi, ip = myIP();
+  line('Adaptador de Rede sem Fio ' + w.name + ':');
+  line('');
+  line(kv('Sufixo DNS específico de conexão', (w.dhcp && ip && !apipaOn()) ? 'etemb.local' : ''));
+  if (all) {
+    line(kv('Descrição', w.desc));
+    line(kv('Endereço Físico', w.mac));
+    line(kv('DHCP Habilitado', w.dhcp ? 'Sim' : 'Não'));
+    line(kv('Configuração Automática Habilitada', 'Sim'));
+  }
+  line(kv('Endereço IPv6 de link local', LL6 + '%' + w.idx + (all ? '(Preferencial)' : '')));
+  if (ip) {
+    if (apipaOn()) line(kv('Endereço IPv4 de Configuração Automática', ip + (all ? '(Preferencial)' : '')));
+    else line(kv('Endereço IPv4', ip + (all ? '(Preferencial)' : '')));
+    line(kv('Máscara de Sub-rede', myMask()));
+  }
+  if (all && w.dhcp && ip && !apipaOn()) {
+    var exp = new Date(S.leaseStart.getTime() + 24 * 3600000);
+    line(kv('Concessão Obtida', fmtLong(S.leaseStart)));
+    line(kv('Concessão Expira', fmtLong(exp)));
+  }
+  line(kv('Gateway Padrão', myGW()));
+  if (all) {
+    if (w.dhcp && ip && !apipaOn()) line(kv('Servidor DHCP', GW));
+    line(kv('IAID DHCPv6', String(104 + idn) + '418290'));
+    line(kv('DUID de Cliente DHCPv6', '00-01-00-01-2D-4F-' + w.mac.slice(9)));
+    var d = myDNS();
+    if (d.length) { line(kv('Servidores DNS', d[0])); for (var i = 1; i < d.length; i++) line(lpad('', kv('x', '').length) + d[i]); }
+    else line(kv('Servidores DNS', 'fec0:0:0:ffff::1%1'));
+    line(kv('NetBIOS em Tcpip', 'Habilitado'));
+  }
+  line('');
+}
+function ipHeader(all) {
+  line(''); line('Configuração de IP do Windows'); line('');
+  if (all) {
+    line(kv('Nome do host', S.hostname));
+    line(kv('Sufixo DNS primário', ''));
+    line(kv('Tipo de nó', 'híbrido'));
+    line(kv('Roteamento de IP ativado', 'não'));
+    line(kv('Proxy WINS ativado', 'não'));
+    line(kv('Lista de pesquisa de sufixo DNS', 'etemb.local'));
+    line('');
+  }
+}
+function cIpconfig(args) {
+  var a = lc(args[0] || '');
+  if (a === '' || a === '/all') {
+    var all = a === '/all';
+    ipHeader(all); ipBlockEth(all); ipBlockWifi(all);
+    if (noIP()) {
+      note('ipconfig', 'O Wi-Fi está sem endereço IPv4 porque você usou ' + c('ipconfig /release') + '. Peça um novo IP ao DHCP com ' + c('ipconfig /renew') + '.');
+    } else if (apipaOn()) {
+      note('IP 169.254.x.x (APIPA)', 'Atenção: o IP começa com <b>169.254</b> e o gateway está em branco. O computador <b>não recebeu IP do DHCP</b> (cabo solto, Wi-Fi sem autenticação ou DHCP fora do ar). Tente ' + c('ipconfig /release') + ' e ' + c('ipconfig /renew') + '.');
+    } else if (all) {
+      note('ipconfig /all', 'Além de IP, máscara e gateway, aparecem o <b>Endereço Físico (MAC)</b>, os <b>Servidores DNS</b>, se o <b>DHCP</b> está habilitado e a validade do IP (concessão). O adaptador Ethernet está sem cabo; a conexão ativa é o Wi-Fi.');
+    } else {
+      note('Como interpretar', 'Este computador é o <b>' + esc(myIP()) + '</b>, está na rede <b>' + esc(andIP(myIP(), myMask())) + '/' + maskBits(myMask()) + '</b> e sai para a internet pelo roteador <b>' + esc(myGW() || '(nenhum)') + '</b>. Para ver MAC e DNS, use ' + c('ipconfig /all') + '.');
+    }
+    return;
+  }
+  if (a === '/release') {
+    line(''); line('Configuração de IP do Windows'); line('');
+    if (!S.wifi.dhcp) { line('Ocorreu um erro ao liberar a interface ' + S.wifi.name + ' : O DHCP não está habilitado neste adaptador.'); line(''); return; }
+    line('Não é possível executar nenhuma operação em Ethernet enquanto a mídia estiver desconectada.');
+    line('');
+    S.released = true; S.apipaForced = false;
+    ipBlockEth(false); ipBlockWifi(false);
+    note('ipconfig /release', 'O computador <b>devolveu o IP</b> ao servidor DHCP e ficou sem endereço IPv4. Agora peça um novo com ' + c('ipconfig /renew') + '.');
+    return;
+  }
+  if (a === '/renew') {
+    line(''); line('Configuração de IP do Windows'); line('');
+    if (!S.wifi.dhcp) { line('Ocorreu um erro ao renovar a interface ' + S.wifi.name + ' : O DHCP não está habilitado neste adaptador.'); line(''); note('IP fixo', 'O Wi-Fi está com IP fixo. Para voltar ao automático: ' + c('netsh interface ip set address "Wi-Fi" dhcp') + '.'); return; }
+    line('Não é possível executar nenhuma operação em Ethernet enquanto a mídia estiver desconectada.');
+    var j = startJob(null);
+    later(j, function () {
+      endJob(j);
+      if (S.scn === 'lan' || S.scn === 'tcpip') {
+        line('Ocorreu um erro ao renovar a interface ' + S.wifi.name + ' : não foi possível contatar o servidor DHCP. O tempo limite da solicitação foi atingido.');
+        line('');
+        if (S.scn === 'lan') { S.released = false; S.apipaForced = true; }
+        note('Falha no /renew', 'O servidor DHCP não respondeu. Isso indica problema no caminho até o roteador (cabo, switch ou Wi-Fi) ou no próprio computador.');
+        return;
+      }
+      var wasApipa = S.scn === 'apipa';
+      S.released = false; S.apipaForced = false;
+      if (wasApipa) S.scn = 'normal';
+      S.leaseStart = new Date();
+      line('');
+      ipBlockEth(false); ipBlockWifi(false);
+      if (wasApipa) solved('O DHCP entregou um IP válido (' + esc(myIP()) + ') e o gateway voltou. Este era o passo 1 do roteiro: conferir se o computador tem IP válido.');
+      else note('ipconfig /renew', 'O computador pediu e recebeu um IP do servidor DHCP (o roteador ' + GW + '). <b>/release + /renew</b> resolve muitos casos de conflito de IP ou de “rede não identificada”.');
+    }, 1600);
+    return;
+  }
+  if (a === '/flushdns') {
+    line(''); line('Configuração de IP do Windows'); line('');
+    if (S.scn === 'tcpip') { line('Não foi possível liberar o Cache do DNS Resolver: A função falhou durante a execução.'); return; }
+    S.cache = {};
+    line('Cache do DNS Resolver liberado com êxito.');
+    if (S.scn === 'dns') note('ipconfig /flushdns', 'O cache foi limpo, mas o servidor DNS configurado continua sem responder. Teste ' + c('nslookup www.google.com 8.8.8.8') + ' para comparar com outro servidor.');
+    else note('ipconfig /flushdns', 'Limpa os nomes guardados no cache de DNS. Use quando um site mudou de IP ou não abre. Confira com ' + c('ipconfig /displaydns') + '.');
+    return;
+  }
+  if (a === '/displaydns') {
+    line(''); line('Configuração de IP do Windows'); line('');
+    var keys = [], k;
+    for (k in S.cache) { if (S.cache.hasOwnProperty(k)) keys.push(k); }
+    if (!keys.length) { line('Não foi possível exibir o Cache do DNS Resolver.'); note('Cache vazio', 'O cache de DNS está vazio. Faça um ' + c('ping www.google.com') + ' e veja de novo.'); return; }
+    for (var i = 0; i < keys.length; i++) {
+      var e = S.cache[keys[i]], left = Math.max(1, e.ttl - Math.floor((now() - e.t) / 1000));
+      for (var x = 0; x < e.res.A.length; x++) {
+        line('    ' + keys[i]); line('    ----------------------------------------');
+        line(kv('Nome do registro', keys[i], '    ')); line(kv('Tipo de registro', '1', '    '));
+        line(kv('Vida útil', String(left), '    ')); line(kv('Comprimento dos dados', '4', '    '));
+        line(kv('Seção', 'Resposta', '    ')); line(kv('Um registro (host)', e.res.A[x], '    ')); line('');
+      }
+    }
+    note('ipconfig /displaydns', 'Estes são os nomes que o Windows já traduziu e guardou. A “vida útil” (TTL) diminui até o registro expirar.');
+    return;
+  }
+  line(''); line('Erro: opção de linha de comando não reconhecida: ' + args[0]); line(''); lines(HELP.ipconfig);
+}
+
+/* =========================================================
+ * 2. PING
+ * ========================================================= */
+function cPing(args, linux) {
+  var o = { t: !!linux, n: 4, l: linux ? 56 : 32, v6: false, target: null };
+  for (var i = 0; i < args.length; i++) {
+    var a = args[i], la = lc(a);
+    if (!linux && (la === '-t' || la === '/t')) o.t = true;
+    else if ((!linux && (la === '-n' || la === '/n')) || (linux && la === '-c')) {
+      var n = parseInt(args[++i], 10);
+      if (!(n >= 1)) { line(linux ? 'ping: invalid argument' : 'Valor incorreto para a opção ' + a + '; o intervalo válido é de 1 a 4294967295.'); return; }
+      o.n = n; o.t = false;
+    }
+    else if ((!linux && (la === '-l' || la === '/l')) || (linux && la === '-s')) {
+      var l = parseInt(args[++i], 10);
+      if (!(l >= 0 && l <= 65500)) { line('Valor inválido para a opção -l. O intervalo válido é de 0 a 65500.'); return; }
+      o.l = l;
+    }
+    else if (la === '-4') o.v6 = false;
+    else if (la === '-6') o.v6 = true;
+    else if (la.charAt(0) === '-' || (la.charAt(0) === '/' && la.length <= 3)) {
+      if (linux) { line('ping: invalid option -- \'' + la.replace(/^-+/, '') + '\''); return; }
+      line('Opção ' + a + ' incorreta.'); line(''); lines(HELP.ping); return;
+    }
+    else o.target = a;
+  }
+  if (!o.target) {
+    if (linux) { line('ping: usage error: Destination address required'); return; }
+    line('O destino do comando ping deve ser especificado.'); line(''); lines(HELP.ping); return;
+  }
+  var job = startJob(null);
+  var tname = o.target, isLocalhost = lc(tname) === 'localhost';
+  if (isLocalhost && !linux && !o.v6) { o.v6 = true; }
+  resolve(tname, { type: o.v6 ? 'AAAA' : 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    var v4 = res && res.A && res.A[0];
+    var v6 = res && res.AAAA && res.AAAA[0];
+    if (err || (o.v6 ? !v6 : !v4)) {
+      endJob(job);
+      if (linux) { line('ping: ' + tname + ': Name or service not known'); return; }
+      if (err === 'noroute' && !isIPv4(tname)) {
+        line('A solicitação ping não pôde encontrar o host ' + tname + '. Verifique o nome e tente novamente.');
+      } else if (o.v6 && !err) {
+        line('A solicitação ping não pôde encontrar o host ' + tname + '. Verifique o nome e tente novamente.');
+        note('ping -6', 'Este nome não tem endereço IPv6 (registro AAAA). Tente sem o ' + c('-6') + '.');
+        return;
+      } else {
+        line('A solicitação ping não pôde encontrar o host ' + tname + '. Verifique o nome e tente novamente.');
+      }
+      note('O nome não foi traduzido', 'O ping nem chegou a ser enviado: o nome <b>' + esc(tname) + '</b> não foi convertido em IP. Pode ser <b>problema de DNS</b> ou nome digitado errado. Compare com ' + c('ping 8.8.8.8') + ' e teste ' + c('nslookup ' + tname + ' 8.8.8.8') + '.');
+      return;
+    }
+    var shown = o.v6 ? v6 : v4;
+    var reachIP = isLocalhost ? '127.0.0.1' : (v4 || '8.8.8.8');
+    var literal = res.literal;
+    var st = { sent: 0, rec: 0, times: [], lastSt: null, kinds: {} };
+    job.onStop = function () { if (linux) linuxStats(); else { pingStats(); line('Control-C'); } };
+    line('');
+    if (linux) line('PING ' + tname + ' (' + shown + ') ' + o.l + '(' + (o.l + 28) + ') bytes of data.');
+    else if (literal) line('Disparando ' + shown + ' com ' + o.l + ' bytes de dados:');
+    else line('Disparando ' + (isLocalhost ? S.hostname : tname) + ' [' + shown + '] com ' + o.l + ' bytes de dados:');
+
+    function msTxt(ms) { return ms < 1 ? '<1ms' : '=' + ms + 'ms'; }
+    function pingStats() {
+      if (!st.sent) return;
+      var lost = st.sent - st.rec;
+      line('');
+      line('Estatísticas do Ping para ' + shown + ':');
+      line('    Pacotes: Enviados = ' + st.sent + ', Recebidos = ' + st.rec + ', Perdidos = ' + lost + ' (' + Math.round(lost * 100 / st.sent) + '% de perda),');
+      if (st.times.length) {
+        var mn = Math.min.apply(null, st.times), mx = Math.max.apply(null, st.times), sum = 0;
+        for (var q = 0; q < st.times.length; q++) sum += st.times[q];
+        line('Aproximar um número redondo de viagens em milissegundos:');
+        line('    Mínimo = ' + mn + 'ms, Máximo = ' + mx + 'ms, Média = ' + Math.round(sum / st.times.length) + 'ms');
+      }
+    }
+    function linuxStats() {
+      line('');
+      line('--- ' + tname + ' ping statistics ---');
+      var lost = st.sent - st.rec;
+      line(st.sent + ' packets transmitted, ' + st.rec + ' received, ' + Math.round(lost * 100 / Math.max(1, st.sent)) + '% packet loss, time ' + Math.max(0, st.sent - 1) * 1001 + 'ms');
+      if (st.times.length) {
+        var mn = Math.min.apply(null, st.times), mx = Math.max.apply(null, st.times), sum = 0;
+        for (var q = 0; q < st.times.length; q++) sum += st.times[q];
+        line('rtt min/avg/max/mdev = ' + mn.toFixed(3) + '/' + (sum / st.times.length).toFixed(3) + '/' + mx.toFixed(3) + '/' + ((mx - mn) / 3).toFixed(3) + ' ms');
+      }
+    }
+    function finish() {
+      endJob(job);
+      if (linux) { linuxStats(); return; }
+      pingStats();
+      pingNote(shown, reachIP, st, o, literal ? null : tname);
+    }
+    function next(d) {
+      if (o.t || st.sent < o.n) later(job, one, d);
+      else finish();
+    }
+    function one() {
+      var r = reach(reachIP);
+      st.sent++; st.lastSt = r.st; st.kinds[r.st] = (st.kinds[r.st] || 0) + 1;
+      if (r.st === 'ok') {
+        var extra = Math.round(o.l / 900);
+        var show = function (ms) {
+          if (!job.alive) return;
+          ms = Math.max(0, Math.round(ms));
+          st.rec++; st.times.push(ms);
+          if (linux) line(o.l + 8 + ' bytes from ' + shown + ': icmp_seq=' + st.sent + ' ttl=' + r.ttl + ' time=' + (ms < 1 ? '0.0' + rnd(31, 89) : ms + '.' + rnd(0, 9)) + ' ms');
+          else if (o.v6) line('Resposta de ' + shown + ': tempo' + msTxt(ms));
+          else line('Resposta de ' + shown + ': bytes=' + o.l + ' tempo' + msTxt(ms) + ' TTL=' + r.ttl);
+          next(1000);
+        };
+        if (r.ext && S.net === 'real') {
+          measure(function (m) { show(m == null ? r.ms + extra : clamp(m + destOffset(reachIP), 2, 450) + extra); });
+        } else show(r.ms + (r.ms ? extra : 0));
+      } else if (r.st === 'timeout') {
+        later(job, function () {
+          if (!linux) line('Esgotado o tempo limite do pedido.');
+          next(300);
+        }, 1500);
+      } else if (r.st === 'unreach') {
+        st.rec++;
+        if (linux) { st.rec--; line('From ' + (myIP() || '0.0.0.0') + ' icmp_seq=' + st.sent + ' Destination Host Unreachable'); }
+        else line('Resposta de ' + myIP() + ': Host de destino inacessível.');
+        next(1000);
+      } else {
+        if (linux) line('ping: sendmsg: Network is unreachable');
+        else line('PING: falha na transmissão. Falha geral.');
+        next(1000);
+      }
+    }
+    later(job, one, 250);
+  });
+}
+function pingNote(shown, ip, st, o, byName) {
+  if (!S.edu) return;
+  var lost = st.sent - st.rec, k = st.kinds;
+  if (k.fail === st.sent) {
+    note('Falha geral', 'O computador <b>nem conseguiu enviar</b> o pacote. Normalmente ele está sem IP válido, sem gateway ou com a pilha TCP/IP com problema. Confira com ' + c('ipconfig') + (ip === '127.0.0.1' ? '. Como até o 127.0.0.1 falhou, o problema é <b>na própria máquina</b>: tente ' + c('netsh winsock reset') + '.' : '.'));
+    return;
+  }
+  if (k.unreach) {
+    note('Host de destino inacessível', 'A resposta veio do <b>seu próprio PC</b> (' + esc(myIP()) + '): não existe caminho até o destino. Pode ser um IP que não existe na rede local, ou gateway/máscara configurados errado. Repare que o Windows conta essa resposta como “recebida”.');
+    return;
+  }
+  if (lost === st.sent) {
+    var extra = ip === '192.168.0.10' ? ' Este servidor existe, mas o <b>firewall bloqueia o ping</b>: teste a porta com ' + c('Test-NetConnection 192.168.0.10 -Port 3389') + ' no PowerShell.' : '';
+    note('Esgotado o tempo limite', 'O destino não respondeu: pode estar desligado, inacessível ou com <b>firewall bloqueando ICMP</b>. Um ping sem resposta nem sempre quer dizer que a máquina está desligada.' + extra + (ip === GW ? ' Como o gateway não responde, o problema está na <b>rede local</b> (cabo, switch ou Wi-Fi).' : ''));
+    return;
+  }
+  if (lost > 0) {
+    note('Perda de pacotes', 'Perdidos ' + lost + ' de ' + st.sent + ' (' + Math.round(lost * 100 / st.sent) + '%): a conexão está <b>instável</b> (Wi-Fi fraco, cabo ruim, rede congestionada ou problema no provedor). Use ' + c('pathping ' + (isIPv4(shown) ? shown : '8.8.8.8')) + ' para descobrir em qual salto a perda acontece.');
+    return;
+  }
+  var sum = 0; for (var i = 0; i < st.times.length; i++) sum += st.times[i];
+  var avg = st.times.length ? Math.round(sum / st.times.length) : 0;
+  var qual = avg <= 50 ? 'ótimo (até ~50 ms)' : (avg <= 150 ? 'aceitável' : 'lento (acima de 150 ms)');
+  var what = '';
+  if (ip === '127.0.0.1') what = 'O <b>127.0.0.1</b> (localhost) é o próprio computador: este teste confirma que a <b>placa e o TCP/IP</b> funcionam, sem usar a rede.';
+  else if (ip === GW) what = 'O gateway (roteador) respondeu: a <b>rede local funciona</b>. Próximo passo do roteiro: ' + c('ping 8.8.8.8') + '.';
+  else if (ip === '8.8.8.8') what = 'A saída para a <b>internet funciona</b> (8.8.8.8 é o DNS do Google). Próximo passo: ' + c('ping www.google.com') + ' para testar também o DNS.';
+  else if (byName) what = 'O nome <b>' + esc(byName) + '</b> foi traduzido para IP pelo DNS e o destino respondeu: <b>a rede e o DNS estão funcionando</b>.';
+  else what = 'O destino respondeu.';
+  var ttlTxt = ' O <b>TTL</b> começa em 128 (Windows) ou 64 (Linux/roteadores) e diminui 1 a cada roteador do caminho.';
+  note('ping', what + ' Tempo médio de <b>' + avg + ' ms</b>: ' + qual + '.' + ttlTxt + (o.t ? '' : ' Experimente ' + c('ping -t ' + (byName || shown)) + ' e pare com <b>Ctrl+C</b>.'));
+}
+
+/* =========================================================
+ * 3. TRACERT / PATHPING
+ * ========================================================= */
+function isGoogle(ip) { return /^(8\.8\.|142\.25[01]\.|172\.217\.|216\.58\.|192\.178\.)/.test(ip); }
+function hopsTo(ip) {
+  var me = myIP(), list = [];
+  if (sameNet(ip, me, myMask())) { list.push({ ip: ip, end: true }); return list; }
+  list.push({ ip: GW, f: 0 });
+  if (/^10\.91\.150\./.test(ip)) { list.push({ ip: ip, end: true }); return list; }
+  var ispName = S.isp ? lc(S.isp).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 18) : 'provedor';
+  list.push({ ip: '100.64.0.1', f: 0.2 });
+  list.push({ ip: '177.70.' + (hash(ispName) % 200 + 20) + '.1', name: 'core1.' + ispName + '.net.br', f: 0.35, prov: true });
+  if (isPrivate(ip)) { list.push({ silent: true, f: 0.4, dead: true }); return list; }
+  list.push({ silent: true, f: 0.5 });
+  if (isGoogle(ip)) {
+    list.push({ ip: '187.16.216.27', name: 'as15169.saopaulo.sp.ix.br', f: 0.8 });
+    list.push({ ip: '142.251.65.17', f: 0.9 });
+    list.push({ ip: '192.178.97.81', f: 0.95 });
+  } else if (destOffset(ip) > 90) {
+    list.push({ ip: '187.16.217.101', name: 'ntt.saopaulo.sp.ix.br', f: 0.25 });
+    list.push({ ip: '129.250.2.73', name: 'ae-2.r24.miamfl02.us.bb.gin.ntt.net', f: 0.6 });
+    list.push({ ip: '129.250.4.170', name: 'ae-0.r20.asbnva02.us.bb.gin.ntt.net', f: 0.92 });
+  } else {
+    list.push({ ip: '187.16.216.' + (40 + hash(ip) % 80), name: 'saopaulo.sp.ix.br', f: 0.75 });
+    list.push({ ip: '200.' + (150 + hash(ip) % 90) + '.' + (hash('h' + ip) % 250) + '.1', f: 0.9 });
+  }
+  list.push({ ip: ip, end: true, f: 1 });
+  return list;
+}
+function hopLabel(ip, name, noRes) {
+  if (noRes) return ip;
+  var n = name || revName(ip);
+  if (ip === GW) n = 'roteador.etemb.local';
+  return n ? n + ' [' + ip + ']' : ip;
+}
+function cell(v) { return lpad(v === '*' ? '*' : (v < 1 ? '<1 ms' : v + ' ms'), 9); }
+function cTracert(args) {
+  var noRes = false, maxH = 30, target = null;
+  for (var i = 0; i < args.length; i++) {
+    var la = lc(args[i]);
+    if (la === '-d' || la === '/d') noRes = true;
+    else if (la === '-h' || la === '/h') { maxH = clamp(parseInt(args[++i], 10) || 30, 1, 255); }
+    else if (la === '-4' || la === '-6') { /* ignora */ }
+    else if (la.charAt(0) === '-') { line('Opção ' + args[i] + ' incorreta.'); line(''); lines(HELP.tracert); return; }
+    else target = args[i];
+  }
+  if (!target) { line(''); lines(HELP.tracert); return; }
+  var job = startJob(null);
+  resolve(target, { type: 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    if (err || !res.A[0]) {
+      endJob(job);
+      line('Não é possível resolver o nome do sistema de destino ' + target + '.');
+      note('tracert', 'O nome não foi traduzido em IP (problema de DNS ou nome errado). Experimente ' + c('tracert 8.8.8.8') + '.');
+      return;
+    }
+    var ip = res.A[0];
+    line('');
+    if (res.literal && noRes) line('Rastreando a rota para ' + ip + ' com no máximo ' + maxH + ' saltos');
+    else { line('Rastreando a rota para ' + (res.literal ? hopLabel(ip, null, false) : target + ' [' + ip + ']')); line('com no máximo ' + maxH + ' saltos:'); }
+    line('');
+    var final = reach(ip);
+    if (final.st === 'fail' || (final.st === 'unreach' && !myIP())) {
+      later(job, function () {
+        line('  1     Falha na transmissão. Falha geral.');
+        line(''); line('Rastreamento concluído.'); endJob(job);
+        note('tracert', 'Falha geral: o computador não conseguiu nem enviar o pacote (sem IP válido, sem gateway ou TCP/IP com defeito). Volte ao passo 1 do roteiro: ' + c('ipconfig') + '.');
+      }, 500);
+      return;
+    }
+    if (final.st === 'unreach') {
+      later(job, function () {
+        line('  1  ' + myIP() + '  relatórios: Host de destino inacessível.');
+        line(''); line('Rastreamento concluído.'); endJob(job);
+        note('tracert', 'O próprio PC avisou que não há caminho: confira máscara e gateway no ' + c('ipconfig') + '.');
+      }, 600);
+      return;
+    }
+    var hops = hopsTo(ip);
+    var fin = final.ms || S.rtt + destOffset(ip);
+    var lanDown = S.scn === 'lan', wanDown = S.scn === 'wan';
+    var lanHostTarget = lanHost(ip);
+    var blocked = lanHostTarget && lanHostTarget.noPing;
+    var h = 0, stopNoteKind = '';
+    function step() {
+      h++;
+      if (h > maxH) { line(''); line('Rastreamento concluído.'); endJob(job); tracertNote(stopNoteKind, ip); return; }
+      var hop = hops[h - 1];
+      var dead = lanDown || (wanDown && h >= 2 && !isPrivate(ip)) || (hop && hop.dead) || (!hop) || (hop && hop.end && blocked);
+      if (h > hops.length) dead = true;
+      if (dead) {
+        if (!stopNoteKind) stopNoteKind = h === 1 ? 'h1' : 'hn';
+        line(lpad(h, 3) + cell('*') + cell('*') + cell('*') + '     Esgotado o tempo limite do pedido.');
+        later(job, step, 900);
+        return;
+      }
+      if (hop.silent) {
+        line(lpad(h, 3) + cell('*') + cell('*') + cell('*') + '     Esgotado o tempo limite do pedido.');
+        later(job, step, 900);
+        return;
+      }
+      var base = hop.ip === GW ? rnd(0, 2) : (hop.end && lanHostTarget ? rnd(0, 2) : Math.max(1, Math.round(fin * (hop.f || 1))));
+      var t = [base + rnd(0, 2), base + rnd(-1, 2), base + rnd(0, 3)];
+      for (var q = 0; q < 3; q++) {
+        if (hop.ip === GW || (hop.end && lanHostTarget)) t[q] = rnd(0, 2);
+        t[q] = Math.max(0, t[q]);
+        if (S.scn === 'perda' && h >= 3 && !hop.end && Math.random() < 0.4) t[q] = '*';
+      }
+      line(lpad(h, 3) + cell(t[0]) + cell(t[1]) + cell(t[2]) + '  ' + hopLabel(hop.ip, hop.name, noRes));
+      if (hop.end) { line(''); line('Rastreamento concluído.'); endJob(job); tracertNote('ok', ip, hops.length); return; }
+      later(job, step, 450 + rnd(0, 250));
+    }
+    later(job, step, 400);
+  });
+}
+function tracertNote(kind, ip, n) {
+  if (kind === 'ok') note('Como interpretar', 'Foram <b>' + n + ' saltos</b>. O salto 1 é o seu roteador (' + GW + '); os seguintes são do provedor e da internet. Linhas com <b>* * *</b> são roteadores que não respondem ao tracert, o que é normal quando a rota continua depois. Use ' + c('tracert -d') + ' para ficar mais rápido (sem nomes).');
+  else if (kind === 'h1') note('Como interpretar', 'Nenhum salto respondeu, nem o primeiro (o seu roteador). O problema está na <b>rede local</b>: cabo, switch ou Wi-Fi.');
+  else if (kind === 'hn') note('Como interpretar', 'A partir de um ponto, todas as linhas ficaram <b>* * *</b>: a conexão está parando ali. Se para logo depois do salto 1, o problema está no <b>roteador ou no provedor</b>. Pressione <b>Ctrl+C</b> para interromper.');
+}
+function cPathping(args) {
+  var noRes = false, target = null;
+  for (var i = 0; i < args.length; i++) { var la = lc(args[i]); if (la === '-n' || la === '/n') noRes = true; else if (la.charAt(0) !== '-') target = args[i]; }
+  if (!target) { line(''); lines(HELP.pathping); return; }
+  var job = startJob(null);
+  resolve(target, { type: 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    if (err || !res.A[0]) { endJob(job); line('Não é possível resolver o nome do sistema de destino ' + target + '.'); return; }
+    var ip = res.A[0];
+    var final = reach(ip);
+    line('');
+    line('Rastreando a rota para ' + (res.literal ? ip : target + ' [' + ip + ']'));
+    line('com no máximo 30 saltos:');
+    if (final.st === 'fail' || final.st === 'unreach') { later(job, function () { line('  0  Falha geral.'); line(''); line('Rastreamento concluído.'); endJob(job); }, 500); return; }
+    var all = hopsTo(ip), hops = [];
+    for (var a = 0; a < all.length; a++) { if (!all[a].silent) hops.push(all[a]); }
+    var reached = [];
+    var meLabel = noRes ? myIP() : S.hostname + '.etemb.local [' + myIP() + ']';
+    line('  0  ' + meLabel);
+    var h = 0, stopped = false;
+    function disc() {
+      h++;
+      var hop = hops[h - 1];
+      var dead = !hop || S.scn === 'lan' || (S.scn === 'wan' && h >= 2) || hop.dead || (hop.end && lanHost(ip) && lanHost(ip).noPing);
+      if (dead) { line(lpad(h, 3) + '     *        *        *'); stopped = true; stats(); return; }
+      reached.push(hop);
+      line(lpad(h, 3) + '  ' + hopLabel(hop.ip, hop.name, noRes));
+      if (hop.end) { stats(); return; }
+      later(job, disc, 380);
+    }
+    function stats() {
+      line('Computando estatísticas por ' + (Math.max(1, reached.length) * 25) + ' segundos...');
+      later(job, function () {
+        var fin = final.ms || S.rtt + destOffset(ip);
+        line('            Origem para aqui   Este nó/vínculo');
+        line('Salto  RTT  Perd./Env. = Pct  Perd./Env. = Pct  Endereço');
+        line('  0                                           ' + meLabel);
+        var cum = 0, lossHop = -1;
+        for (var r = 0; r < reached.length; r++) {
+          var hp = reached[r], nodeLoss = 0;
+          if (S.scn === 'perda' && hp.prov) { nodeLoss = 38 + rnd(0, 6); lossHop = r + 1; }
+          cum = Math.max(cum, nodeLoss);
+          var rtt = hp.ip === GW || (hp.end && lanHost(ip)) ? rnd(0, 2) : Math.max(1, Math.round(fin * (hp.f || 1)));
+          line('                                0/ 100 =  0%   |');
+          line(lpad(r + 1, 3) + lpad(rtt + 'ms', 7) + lpad(cum + '/ 100 =' + lpad(cum, 3) + '%', 18) + lpad(nodeLoss + '/ 100 =' + lpad(nodeLoss, 3) + '%', 18) + '  ' + hopLabel(hp.ip, hp.name, noRes));
+        }
+        line(''); line('Rastreamento concluído.');
+        endJob(job);
+        if (lossHop > 0) note('pathping', 'A perda de pacotes começa no <b>salto ' + lossHop + '</b> (roteador do provedor) e se mantém até o destino. Esse é o ponto com problema: leve este resultado ao provedor.');
+        else if (stopped) note('pathping', 'A rota parou no salto ' + h + ': a partir dali nada responde. Veja também o ' + c('tracert') + '.');
+        else note('pathping', 'O pathping junta ping e tracert: descobre a rota e mede a <b>perda em cada salto</b>. Aqui não houve perda (0%) em nenhum roteador. No Windows real ele leva alguns minutos; o simulador acelerou.');
+      }, 2600);
+    }
+    later(job, disc, 400);
+  });
+}
+
+/* =========================================================
+ * 4. NSLOOKUP
+ * ========================================================= */
+function serverName(ip) { return KNOWN_DNS[ip] || 'UnKnown'; }
+function nsServerHeader(server, cb) {
+  var st = dnsServerState(server);
+  if (st === 'noroute') {
+    lines(['*** Não é possível encontrar o nome do servidor para o endereço ' + server + ': No response from server', '*** Os servidores padrão não estão disponíveis', 'Servidor:  UnKnown', 'Address:  127.0.0.1', '']);
+    cb(st); return;
+  }
+  if (st === 'timeout') {
+    lines(['DNS request timed out.', '    timeout was 2 seconds.', 'Servidor:  UnKnown', 'Address:  ' + server, '']);
+    cb(st); return;
+  }
+  lines(['Servidor:  ' + serverName(server), 'Address:  ' + server, '']);
+  cb('ok');
+}
+function fmtAddrs(list) {
+  if (list.length === 1) { line('Address:  ' + list[0]); return; }
+  line('Addresses:  ' + list[0]);
+  for (var i = 1; i < list.length; i++) line('          ' + list[i]);
+}
+function nsQuery(name, type, server, job, done) {
+  type = (type || 'A').toUpperCase();
+  if (type === 'ANY') type = 'A';
+  var serverOK = dnsServerState(server);
+  nsServerHeader(server, function () {});
+  var finish = function () { if (done) done(); };
+  if (serverOK !== 'ok') {
+    var wait = serverOK === 'timeout' ? 1500 : 200;
+    later(job, function () {
+      if (serverOK === 'timeout') lines(['DNS request timed out.', '    timeout was 2 seconds.', '*** Tempo limite da solicitação para UnKnown esgotado']);
+      else line('*** UnKnown não encontrou ' + name + ': No response from server');
+      if (serverOK === 'timeout') note('nslookup', 'O servidor DNS <b>' + esc(server) + '</b> não respondeu. Teste outro servidor: ' + c('nslookup ' + name + ' 8.8.8.8') + '. Se com outro servidor funcionar, o DNS configurado é que está com problema.');
+      else note('nslookup', 'Sem rede (sem IP válido ou sem gateway), não dá para consultar o DNS. Comece pelo ' + c('ipconfig') + '.');
+      finish();
+    }, wait);
+    return;
+  }
+  // consulta reversa
+  if (isIPv4(name)) {
+    var arpa = name.split('.').reverse().join('.') + '.in-addr.arpa';
+    var showRev = function (ptr) {
+      if (!job.alive) return;
+      if (ptr) { line('Nome:    ' + ptr.replace(/\.$/, '')); line('Address:  ' + name); line(''); note('Consulta reversa', 'Com um IP, o nslookup faz o caminho inverso: descobre o <b>nome</b> a partir do endereço (registro PTR).'); }
+      else line('*** ' + serverName(server) + ' não encontrou ' + name + ': Non-existent domain');
+      finish();
+    };
+    if (S.net === 'real' && !isPrivate(name)) {
+      realDNS(arpa, 'PTR', function (r) { showRev(r && r.res && r.res.PTR[0] ? r.res.PTR[0] : revName(name)); });
+    } else later(job, function () { showRev(sameNet(name, LAN, LANMASK) && server !== GW && !KNOWN_DNS[server] ? null : revName(name)); }, 250);
+    return;
+  }
+  var ln = lc(name).replace(/\.$/, '');
+  var isLocal = !!LOCAL_NAMES[ln];
+  var qtype = type === 'A' ? 'A' : type;
+  resolve(ln, { type: qtype, server: server }, function (err, res) {
+    if (!job.alive) return;
+    if (err === 'nx') {
+      line('*** ' + serverName(server) + ' não encontrou ' + ln + ': Non-existent domain');
+      note('nslookup', '“Non-existent domain”: o nome não existe ou foi digitado errado.');
+      finish(); return;
+    }
+    if (err) { line('*** ' + serverName(server) + ' não encontrou ' + ln + ': Server failed'); finish(); return; }
+    var after = function (r6) {
+      if (!job.alive) return;
+      if (!isLocal) line('Não é resposta autoritativa:');
+      if (type === 'A' || type === 'AAAA') {
+        var cn = res.CNAME || [];
+        var canon = cn.length ? cn[cn.length - 1].replace(/\.$/, '') : ln;
+        var addrs = [];
+        if (type === 'A') { var v6 = r6 || res.AAAA || []; for (var a = 0; a < v6.length; a++) addrs.push(v6[a]); }
+        for (var b = 0; b < (type === 'A' ? res.A : res.AAAA).length; b++) addrs.push((type === 'A' ? res.A : res.AAAA)[b]);
+        if (!addrs.length) { line('Nome:    ' + canon); finish(); return; }
+        line('Nome:    ' + canon);
+        fmtAddrs(addrs);
+        if (cn.length) line('Aliases:  ' + ln);
+        line('');
+        var v4 = res.A && res.A[0];
+        note('nslookup', 'O servidor DNS <b>' + esc(serverName(server)) + '</b> (' + esc(server) + ') traduziu <b>' + esc(ln) + '</b> para ' + (v4 ? 'o IP <b>' + esc(v4) + '</b>' : 'os endereços acima') + '. Endereços com “:” são IPv6. “Resposta não autoritativa” é normal: veio do cache de um servidor intermediário.' + (res.real ? ' (consulta real)' : '') + (server !== '1.1.1.1' ? ' Compare com outro servidor: ' + c('nslookup ' + ln + ' 1.1.1.1') + '.' : ''));
+      } else if (type === 'MX') {
+        if (!res.MX.length) { line('*** Não há registros MX para ' + ln); }
+        for (var m = 0; m < res.MX.length; m++) {
+          var p = res.MX[m].split(' ');
+          line(ln + '\tMX preference = ' + p[0] + ', mail exchanger = ' + (p[1] || '').replace(/\.$/, ''));
+        }
+        line('');
+        note('Registros MX', 'Os registros <b>MX (Mail Exchanger)</b> indicam quais servidores recebem os e-mails de <b>' + esc(ln) + '</b>. O menor número de preferência é usado primeiro.');
+      } else if (type === 'NS') {
+        for (var n = 0; n < res.NS.length; n++) line(ln + '\tnameserver = ' + res.NS[n].replace(/\.$/, ''));
+        if (!res.NS.length) line('*** Não há registros NS para ' + ln);
+        line('');
+        note('Registros NS', 'Mostram os <b>servidores de nomes autoritativos</b> do domínio, os “donos” da informação.');
+      } else if (type === 'TXT') {
+        for (var x = 0; x < res.TXT.length; x++) { line(ln + '\ttext ='); line(''); line('\t' + res.TXT[x]); }
+        if (!res.TXT.length) line('*** Não há registros TXT para ' + ln);
+        line('');
+      } else if (type === 'CNAME') {
+        if (res.CNAME.length) line(ln + '\tcanonical name = ' + res.CNAME[0].replace(/\.$/, ''));
+        else line('*** Não há registros CNAME para ' + ln);
+        line('');
+      } else {
+        line('*** Tipo de consulta não suportado no simulador: ' + type);
+      }
+      finish();
+    };
+    if (type === 'A' && !isLocal) {
+      if (S.net === 'real' && res.real) realDNS(ln, 'AAAA', function (r) { after(r && r.res ? r.res.AAAA : []); });
+      else after(null);
+    } else after(null);
+  });
+}
+function cNslookup(args) {
+  var type = 'A', name = null, server = null;
+  for (var i = 0; i < args.length; i++) {
+    var a = args[i], la = lc(a);
+    var m = /^-(type|q|querytype)=(\w+)$/i.exec(a);
+    if (m) { type = m[2].toUpperCase(); continue; }
+    if (la.charAt(0) === '-') continue;
+    if (!name) name = a; else if (!server) server = a;
+  }
+  if (!name) {
+    nsServerHeader(S.nsServer || myDNS()[0] || '127.0.0.1', function () {});
+    S.nsType = type; S.nsServer = null;
+    setMode('nslookup');
+    note('Modo interativo do nslookup', 'O prompt mudou para ' + c('>') + '. Digite um nome (ex.: ' + c('www.google.com') + '). Para ver servidores de e-mail: ' + c('set type=MX') + ' e depois ' + c('gmail.com') + '. Trocar o servidor: ' + c('server 1.1.1.1') + '. Para sair: ' + c('exit') + '.');
+    return;
+  }
+  if (server && !isIPv4(server)) {
+    var sl = lc(server); var mapped = null;
+    for (var k in KNOWN_DNS) { if (KNOWN_DNS.hasOwnProperty(k) && KNOWN_DNS[k] === sl) mapped = k; }
+    if (sl === 'roteador' || sl === 'roteador.etemb.local') mapped = GW;
+    if (!mapped) { line('*** Não é possível encontrar o endereço para o servidor ' + server + ': Non-existent domain'); return; }
+    server = mapped;
+  }
+  var job = startJob(null);
+  nsQuery(name, type, server || myDNS()[0] || '127.0.0.1', job, function () { endJob(job); });
+}
+function nsInteractive(t) {
+  var tk = tokenize(t), w = lc(tk[0] || '');
+  if (w === 'exit' || w === 'quit') { setMode('cmd'); return; }
+  if (w === 'set') {
+    var arg = lc(tk.slice(1).join(''));
+    var m = /^(type|q|querytype)=(\w+)$/.exec(arg);
+    if (m) { S.nsType = m[2].toUpperCase(); note('set type=' + S.nsType, 'As próximas consultas vão buscar registros <b>' + esc(S.nsType) + '</b>. Agora digite um domínio, por exemplo ' + c(S.nsType === 'MX' ? 'gmail.com' : 'google.com') + '.'); return; }
+    if (arg === 'all') { lines(['Servidor Padrão:  ' + serverName(S.nsServer || myDNS()[0]), 'Address:  ' + (S.nsServer || myDNS()[0] || ''), '', 'Definir opções:', '  type=' + S.nsType, '  timeout = 2', '  retry = 1']); return; }
+    line('*** Opção inválida: ' + tk.slice(1).join(' ')); return;
+  }
+  if (w === 'server' || w === 'lserver') {
+    var sv = tk[1];
+    if (!sv || !isIPv4(sv)) { line('*** Use: server endereço_IP (ex.: server 1.1.1.1)'); return; }
+    S.nsServer = sv;
+    lines(['Servidor Padrão:  ' + serverName(sv), 'Address:  ' + sv, '']);
+    return;
+  }
+  if (w === 'help' || w === '?') { lines(['Comandos:', '  NOME            consulta o nome', '  NOME SERVIDOR   consulta usando outro servidor', '  set type=X      tipo de registro (A, AAAA, MX, NS, TXT, CNAME)', '  server IP       troca o servidor padrão', '  exit            sai do nslookup']); return; }
+  if (w === 'ls') { line('*** Não é possível listar o domínio: Query refused'); return; }
+  var job = startJob(null);
+  var sv2 = tk[1] && isIPv4(tk[1]) ? tk[1] : (S.nsServer || myDNS()[0] || '127.0.0.1');
+  nsQuery(tk[0], S.nsType, sv2, job, function () { endJob(job); });
+}
+
+/* =========================================================
+ * 5. NETSTAT / TASKLIST
+ * ========================================================= */
+function cNetstat(args) {
+  var f = '';
+  for (var i = 0; i < args.length; i++) {
+    var a = lc(args[i]);
+    if (/^[-\/][abenor]+$/.test(a)) f += a.slice(1);
+    else if (/^\d+$/.test(a)) { /* intervalo: ignorado */ }
+    else { line(''); lines(HELP.netstat); return; }
+  }
+  var has = function (ch) { return f.indexOf(ch) !== -1; };
+  if (has('r')) { cRoute(['print']); return; }
+  if (has('e')) {
+    S.rx += rnd(20000, 900000); S.tx += rnd(5000, 90000);
+    lines(['Estatísticas de interface', '', '                           Recebidos            Enviados', '',
+      'Bytes                    ' + lpad(S.rx, 10) + lpad(S.tx, 20), 'Pacotes unicast          ' + lpad(Math.round(S.rx / 1120), 10) + lpad(Math.round(S.tx / 410), 20),
+      'Pacotes não unicast      ' + lpad(4523, 10) + lpad(812, 20), 'Descartados              ' + lpad(0, 10) + lpad(0, 20),
+      'Erros                    ' + lpad(S.scn === 'perda' ? 1287 : 0, 10) + lpad(0, 20), 'Protocolos desconhecidos ' + lpad(0, 10)]);
+    note('netstat -e', 'Mostra quantos bytes e pacotes a placa já recebeu e enviou, e se houve <b>erros</b> ou descartes. Erros crescendo indicam cabo ou Wi-Fi com problema.');
+    return;
+  }
+  var showAll = has('a'), num = has('n'), pid = has('o'), bin = has('b');
+  var me = myIP() || '0.0.0.0';
+  line('');
+  line('Conexões ativas');
+  line('');
+  line('  Proto  ' + pad('Endereço local', 23) + pad('Endereço externo', 23) + pad('Estado', 16) + (pid ? 'PID' : ''));
+  var count = 0, off = !myIP() || S.scn === 'tcpip';
+  for (var k = 0; k < S.conns.length; k++) {
+    var cn = S.conns[k];
+    var listen = cn.st === 'LISTENING' || cn.p === 'UDP';
+    if (!showAll && listen) continue;
+    if (off && !listen) continue;
+    var la = (cn.l === 'ME' ? me : cn.l) + ':' + cn.lp;
+    var ra;
+    if (cn.p === 'UDP') ra = '*:*';
+    else if (cn.st === 'LISTENING') ra = num ? '0.0.0.0:0' : S.hostname + ':0';
+    else ra = num ? cn.r + ':' + cn.rp : (revName(cn.r) || cn.r) + ':' + (SVC[cn.rp] || cn.rp);
+    line('  ' + pad(cn.p, 5) + '  ' + pad(la, 23) + pad(ra, 23) + pad(cn.st, 16) + (pid ? cn.pid : ''));
+    if (bin) {
+      if (cn.pid === 4) line(' Não é possível obter informações de propriedade');
+      else if (cn.pid === 0) { /* TIME_WAIT não tem dono */ }
+      else line(' [' + (PROCS[cn.pid] ? PROCS[cn.pid][0] : 'svchost.exe') + ']');
+    }
+    count++;
+  }
+  line('');
+  if (pid) note('netstat -ano', 'A mais usada: mostra <b>tudo</b> (-a), em <b>números</b> (-n) e com o <b>PID</b> (-o), o número do programa dono da conexão. Estados: <b>LISTENING</b> = porta aberta esperando; <b>ESTABLISHED</b> = conexão ativa; <b>TIME_WAIT</b> = conexão encerrando. Descubra o programa: ' + c('tasklist | findstr 6340') + '. Filtre uma porta: ' + c('netstat -ano | findstr :443') + '.');
+  else if (bin) note('netstat -b', 'Mostra o <b>nome do programa</b> de cada conexão (exige administrador). Útil para segurança: veja se algum programa estranho está se comunicando com a internet.');
+  else if (num && showAll) note('netstat -an', 'Tudo em formato numérico: IPs e números de porta (443 em vez de https).');
+  else if (num) note('netstat -n', 'Com <b>-n</b>, IPs e portas aparecem como <b>números</b> (ex.: :443 em vez de :https). É mais rápido porque não consulta o DNS. Sem o <b>-a</b>, as portas em LISTENING não aparecem.');
+  else if (showAll) note('netstat -a', 'Com <b>-a</b> aparecem todas as conexões e também as portas em escuta (<b>LISTENING</b>) e UDP. Sem o -n, o Windows troca IPs e portas por nomes (https, microsoft-ds...).');
+  else note('netstat', 'Sem opções, mostra só as conexões ativas. Use ' + c('netstat -a') + ' para ver também as portas em escuta, ou ' + c('netstat -ano') + ' para ver tudo com o PID.');
+}
+function cTasklist(args) {
+  if (args.length && !/^\/(v|svc|fo)$/i.test(args[0])) { line('ERRO: Argumento ou opção inválida - \'' + args[0] + '\'.'); return; }
+  line('');
+  line(pad('Nome da imagem', 25) + ' ' + lpad('PID', 8) + ' ' + pad('Nome da sessão', 16) + ' ' + lpad('Sessão#', 11) + ' ' + lpad('Uso de memória', 14));
+  line('========================= ======== ================ =========== ==============');
+  var ids = [0, 4, 640, 772, 1012, 2140, 3988, 5876, 4560, 8120, 6340, 6412, 9932, 3320];
+  if (S.mode === 'ps') ids.push(10456);
+  for (var i = 0; i < ids.length; i++) {
+    var p = PROCS[ids[i]], svc = ids[i] < 4560 && ids[i] !== 3320;
+    line(pad(p[0], 25) + ' ' + lpad(ids[i], 8) + ' ' + pad(svc ? 'Services' : 'Console', 16) + ' ' + lpad(svc ? 0 : 1, 11) + ' ' + lpad(p[1].toLocaleString ? p[1].toLocaleString('pt-BR') + ' K' : p[1] + ' K', 14));
+  }
+  note('tasklist', 'Lista os programas em execução com o <b>PID</b>. Junto com ' + c('netstat -ano') + ', mostra qual programa está usando cada conexão. Ex.: ' + c('tasklist | findstr 6340') + '.');
+}
+
+/* =========================================================
+ * 6. ARP
+ * ========================================================= */
+function arpStatics() {
+  var me = myIP(), m = myMask();
+  var list = [];
+  if (me && m && !apipaOn()) list.push({ ip: bcastIP(me, m), mac: 'ff-ff-ff-ff-ff-ff', type: 'estático' });
+  list.push({ ip: '224.0.0.22', mac: '01-00-5e-00-00-16', type: 'estático' });
+  list.push({ ip: '224.0.0.251', mac: '01-00-5e-00-00-fb', type: 'estático' });
+  list.push({ ip: '239.255.255.250', mac: '01-00-5e-7f-ff-fa', type: 'estático' });
+  list.push({ ip: '255.255.255.255', mac: 'ff-ff-ff-ff-ff-ff', type: 'estático' });
+  return list;
+}
+function cArp(args) {
+  var a = lc(args[0] || '');
+  if (a === '-a' || a === '/a' || a === '-g') {
+    if (S.scn === 'tcpip' || !myIP()) { line('Nenhuma entrada ARP encontrada.'); return; }
+    var filt = args[1] || null;
+    var rows = S.arp.slice(0).sort(function (x, y) { return ipn(x.ip) - ipn(y.ip); }).concat(arpStatics());
+    if (filt) { var fr = []; for (var q = 0; q < rows.length; q++) if (rows[q].ip === filt) fr.push(rows[q]); rows = fr; if (!rows.length) { line('Nenhuma entrada ARP encontrada.'); return; } }
+    line('');
+    line('Interface: ' + myIP() + ' --- 0x' + S.wifi.idx.toString(16));
+    line('  ' + pad('Endereço IP', 22) + pad('Endereço físico', 22) + 'Tipo');
+    for (var i = 0; i < rows.length; i++) line('  ' + pad(rows[i].ip, 22) + pad(rows[i].mac, 22) + rows[i].type);
+    line('');
+    var gw = arpFind(GW), spoofed = false;
+    if (gw !== -1) { for (var j = 0; j < S.arp.length; j++) { if (S.arp[j].ip !== GW && S.arp[j].mac === S.arp[gw].mac) spoofed = true; } }
+    if (spoofed) note('Atenção: MAC repetido!', 'O gateway <b>192.168.0.1</b> e outro IP aparecem com o <b>mesmo MAC</b>. Isso pode ser um ataque de <b>ARP spoofing</b>: alguém se passando pelo roteador para espionar o tráfego.');
+    else note('arp -a', 'A tabela <b>ARP</b> liga cada IP da rede local ao seu <b>MAC</b>. Aparecem só os dispositivos com que o PC conversou recentemente (tipo <b>dinâmico</b>). O MAC do gateway é o da linha 192.168.0.1. Faça ' + c('ping 192.168.0.' + (idn === 150 ? 151 : 150)) + ' e veja a tabela crescer.');
+    return;
+  }
+  if (a === '-d' || a === '/d') {
+    var t = args[1];
+    if (!t) { line('O argumento de linha de comando ARP é inválido.'); return; }
+    if (t === '*') {
+      S.arp = [];
+      if (S.scn === 'spoof') { learnArp(GW); learnArp('192.168.0.137'); }
+      note('arp -d *', 'A tabela ARP foi limpa. Ela é refeita automaticamente quando o PC volta a se comunicar.' + (S.scn === 'spoof' ? ' Repare que, com o atacante ainda conectado, a entrada falsa do gateway voltou: é preciso <b>tirar o notebook da rede</b>.' : ' Confira com ' + c('arp -a') + '.'));
+      return;
+    }
+    var idx = arpFind(t);
+    if (idx === -1) { line('Falha na exclusão da entrada ARP: O elemento não foi encontrado.'); note('arp -d', 'Esse IP não está na tabela ARP. Veja os IPs existentes com ' + c('arp -a') + '.'); return; }
+    S.arp.splice(idx, 1);
+    note('arp -d ' + t, 'A entrada foi removida (o Windows não mostra mensagem quando dá certo). Confira com ' + c('arp -a') + '. Se você fizer ' + c('ping ' + t) + ', o PC descobre o MAC de novo.');
+    return;
+  }
+  if (a === '-s') { line('A adição de entrada ARP falhou: Acesso negado.'); return; }
+  line(''); lines(HELP.arp);
+}
+
+/* =========================================================
+ * 7. ROUTE
+ * ========================================================= */
+function routeRows() {
+  var me = myIP(), m = myMask(), gw = myGW(), rows = [];
+  if (gw) rows.push(['0.0.0.0', '0.0.0.0', gw, me, '35']);
+  rows.push(['127.0.0.0', '255.0.0.0', 'No vínculo', '127.0.0.1', '331']);
+  rows.push(['127.0.0.1', '255.255.255.255', 'No vínculo', '127.0.0.1', '331']);
+  rows.push(['127.255.255.255', '255.255.255.255', 'No vínculo', '127.0.0.1', '331']);
+  if (me) {
+    rows.push([andIP(me, m), m, 'No vínculo', me, '291']);
+    rows.push([me, '255.255.255.255', 'No vínculo', me, '291']);
+    rows.push([bcastIP(me, m), '255.255.255.255', 'No vínculo', me, '291']);
+  }
+  for (var i = 0; i < S.uroutes.length; i++) { var u = S.uroutes[i]; rows.push([u.dest, u.mask, u.gw, me || '0.0.0.0', String(u.metric + 35)]); }
+  rows.push(['224.0.0.0', '240.0.0.0', 'No vínculo', '127.0.0.1', '331']);
+  if (me) rows.push(['224.0.0.0', '240.0.0.0', 'No vínculo', me, '291']);
+  rows.push(['255.255.255.255', '255.255.255.255', 'No vínculo', '127.0.0.1', '331']);
+  if (me) rows.push(['255.255.255.255', '255.255.255.255', 'No vínculo', me, '291']);
+  rows.sort(function (x, y) { return ipn(x[0]) - ipn(y[0]); });
+  return rows;
+}
+function cRoute(args) {
+  var a = args.slice(0), persist = false;
+  if (lc(a[0]) === '-p') { persist = true; a.shift(); }
+  var sub = lc(a[0] || '');
+  var bar = '===========================================================================';
+  if (sub === 'print') {
+    var only4 = lc(a[1]) === '-4', only6 = lc(a[1]) === '-6';
+    line(bar); line('Lista de interfaces');
+    line(lpad(S.wifi.idx, 3) + '...' + lc(S.wifi.mac).replace(/-/g, ' ') + ' ......' + S.wifi.desc);
+    line(lpad(S.eth.idx, 3) + '...' + lc(S.eth.mac).replace(/-/g, ' ') + ' ......' + S.eth.desc);
+    line('  1...........................Software Loopback Interface 1');
+    line(bar);
+    if (!only6) {
+      line(''); line('Tabela de rotas IPv4'); line(bar); line('Rotas ativas:');
+      line('Endereço de rede             Máscara    Endereço de gateway   Interface  Custo');
+      var rows = routeRows();
+      for (var i = 0; i < rows.length; i++) line(lpad(rows[i][0], 17) + lpad(rows[i][1], 17) + lpad(rows[i][2], 18) + lpad(rows[i][3], 17) + lpad(rows[i][4], 6));
+      line(bar);
+      line('Rotas persistentes:');
+      var ps = [];
+      for (var p = 0; p < S.uroutes.length; p++) if (S.uroutes[p].persist) ps.push(S.uroutes[p]);
+      if (!ps.length) line('  Nenhuma');
+      else { line('  Endereço de rede          Máscara  Endereço de gateway  Custo'); for (var z = 0; z < ps.length; z++) line(lpad(ps[z].dest, 17) + lpad(ps[z].mask, 17) + lpad(ps[z].gw, 18) + lpad(ps[z].metric || 'Padrão', 8)); }
+    }
+    if (!only4) {
+      line(''); line('Tabela de rotas IPv6'); line(bar); line('Rotas ativas:');
+      line(' Se Custo Destino de rede           Gateway');
+      line('  1    331 ::1/128                  No vínculo');
+      line(lpad(S.wifi.idx, 3) + '    291 fe80::/64                No vínculo');
+      line(lpad(S.wifi.idx, 3) + '    291 ' + pad(LL6 + '/128', 25) + 'No vínculo');
+      line('  1    331 ff00::/8                 No vínculo');
+      line(lpad(S.wifi.idx, 3) + '    291 ff00::/8                 No vínculo');
+      line(bar); line('Rotas persistentes:'); line('  Nenhuma');
+    }
+    line('');
+    if (!myGW()) note('route print', 'Não existe a rota <b>0.0.0.0</b> (rota padrão): sem gateway, o computador não sabe como sair para a internet.');
+    else note('Como interpretar', 'A linha com destino <b>0.0.0.0</b> e máscara <b>0.0.0.0</b> é a <b>rota padrão</b>: tudo que não tem rota específica vai para o gateway ' + esc(myGW()) + '. “No vínculo” quer dizer que a rede está ligada diretamente à placa.' + (only4 ? '' : ' Use ' + c('route print -4') + ' para ver só o IPv4.'));
+    return;
+  }
+  if (sub === 'add') {
+    var dest = a[1], mi = -1, metric = 1;
+    for (var k = 0; k < a.length; k++) if (lc(a[k]) === 'mask') mi = k;
+    var mask = mi !== -1 ? a[mi + 1] : '255.255.255.255';
+    var gw = mi !== -1 ? a[mi + 2] : a[2];
+    for (var k2 = 0; k2 < a.length; k2++) if (lc(a[k2]) === 'metric') metric = parseInt(a[k2 + 1], 10) || 1;
+    if (!dest || !gw || !isIPv4(dest) || !isIPv4(gw)) { line('Falha ao adicionar a rota: O parâmetro está incorreto.'); line(''); line('Exemplo: route add 10.10.0.0 mask 255.255.0.0 192.168.0.1'); return; }
+    if (!validMask(mask)) { line('Falha ao adicionar a rota: a máscara especificada é inválida.'); return; }
+    if (andIP(dest, mask) !== dest) { line('Falha ao adicionar a rota: o parâmetro de máscara especificado é inválido. (Destino & Máscara) != Destino.'); return; }
+    if (!myIP() || !sameNet(gw, myIP(), myMask())) {
+      line('Falha ao adicionar a rota: O parâmetro está incorreto.');
+      line('');
+      note('Por que falhou?', 'O gateway <b>' + esc(gw) + '</b> não está na sua rede (' + esc(myIP() ? andIP(myIP(), myMask()) + '/' + maskBits(myMask()) : 'sem IP') + '). O Windows só aceita um gateway que ele consegue alcançar diretamente. Neste laboratório o roteador é ' + GW + '. Tente: ' + c('route add 10.10.0.0 mask 255.255.0.0 192.168.0.1') + '.');
+      return;
+    }
+    for (var u = 0; u < S.uroutes.length; u++) { if (S.uroutes[u].dest === dest && S.uroutes[u].mask === mask) { line('Falha ao adicionar a rota: O objeto já existe.'); return; } }
+    S.uroutes.push({ dest: dest, mask: mask, gw: gw, metric: metric, persist: persist });
+    line(' OK!');
+    note(persist ? 'route -p add' : 'route add', 'Rota para a rede <b>' + esc(dest) + '/' + maskBits(mask) + '</b> via <b>' + esc(gw) + '</b> criada. ' + (persist ? 'Com <b>-p</b> ela é <b>permanente</b> e aparece em “Rotas persistentes”.' : 'Ela é <b>temporária</b>: some ao reiniciar. Use ' + c('route -p add ...') + ' para torná-la permanente.') + ' Confira com ' + c('route print -4') + '. Para remover: ' + c('route delete ' + dest) + '.');
+    return;
+  }
+  if (sub === 'delete') {
+    var d = a[1], found = false;
+    for (var r = S.uroutes.length - 1; r >= 0; r--) { if (S.uroutes[r].dest === d) { S.uroutes.splice(r, 1); found = true; } }
+    if (found) { line(' OK!'); note('route delete', 'A rota foi removida da tabela.'); }
+    else line('Falha na exclusão da rota: O elemento não foi encontrado.');
+    return;
+  }
+  if (sub === 'change') { line('Falha ao alterar a rota: O elemento não foi encontrado.'); return; }
+  line(''); lines(HELP.route);
+}
+
+/* =========================================================
+ * 8. HOSTNAME, WHOAMI, GETMAC
+ * ========================================================= */
+function cHostname(args) {
+  if (args.length) { line('sethostname: use o Painel de Controle de Rede para definir o nome do host.'); return; }
+  line(S.hostname);
+  note('hostname', 'É o nome deste computador na rede. Útil para identificar a máquina no laboratório ou em um chamado de suporte.');
+}
+function whoUser() { return lc(S.hostname) + '\\' + S.user; }
+function cWhoami(args) {
+  var a = lc(args[0] || '');
+  if (a === '') { line(whoUser()); note('whoami', 'Mostra quem está logado no formato <b>computador\\usuário</b> (ou domínio\\usuário). Veja os grupos com ' + c('whoami /groups') + '.'); return; }
+  if (a === '/user' || a === '/all') {
+    lines(['', 'INFORMAÇÕES DE USUÁRIO', '----------------------', '', pad('Nome de usuário', 20) + ' SID', '==================== =============================================', pad(whoUser(), 20) + ' S-1-5-21-3623811015-3361044348-' + (30300820 + idn) + '-1001', '']);
+    if (a === '/user') return;
+  }
+  if (a === '/groups' || a === '/all') {
+    var g = [['Todos', 'Grupo conhecido'], ['NT AUTHORITY\\Conta local e membro do grupo Administradores', 'Grupo conhecido'], ['BUILTIN\\Administradores', 'Alias'], ['BUILTIN\\Usuários', 'Alias'], ['NT AUTHORITY\\INTERATIVO', 'Grupo conhecido'], ['NT AUTHORITY\\Usuários autenticados', 'Grupo conhecido'], ['NT AUTHORITY\\Esta organização', 'Grupo conhecido'], ['LOCAL', 'Grupo conhecido'], ['Rótulo Obrigatório\\Nível Obrigatório Alto', 'Rótulo']];
+    lines(['', 'INFORMAÇÕES DE GRUPO', '--------------------', '', pad('Nome do grupo', 40) + ' Tipo', '======================================== ===============']);
+    for (var i = 0; i < g.length; i++) line(pad(g[i][0], 40) + ' ' + g[i][1]);
+    line('');
+    note('whoami /groups', 'Lista os grupos do usuário. Como aparece <b>BUILTIN\\Administradores</b> e o nível obrigatório <b>Alto</b>, este Prompt está aberto <b>como administrador</b> e pode alterar configurações de rede.');
+    return;
+  }
+  line('ERRO: Argumento/opção inválido - \'' + args[0] + '\'.'); line('Digite "WHOAMI /?" para obter detalhes sobre o uso.');
+}
+function cGetmac(args) {
+  var a = lc(args.join(' '));
+  if (a === '' ) {
+    lines(['', pad('Endereço físico', 19) + ' Nome de transporte', '=================== ==========================================================',
+      S.eth.mac + '   Mídia desconectada',
+      S.wifi.mac + '   ' + (myIP() ? '\\Device\\Tcpip_' + S.wifi.guid : 'Mídia desconectada'), '']);
+    note('getmac', 'Mostra o <b>MAC</b> de cada placa: 6 pares hexadecimais (48 bits). Os 3 primeiros pares identificam o fabricante. Para ver o nome de cada placa, use ' + c('getmac /v') + '.');
+    return;
+  }
+  if (a === '/v' || a === '/v /fo table' || a === '/fo list /v' || a === '/v /fo list') {
+    lines(['', pad('Nome da conexão', 16) + pad('Adaptador de rede', 22) + pad('Endereço físico', 20) + 'Nome de transporte',
+      '=============== ===================== =================== ==========================',
+      pad('Ethernet', 16) + pad('Realtek PCIe GbE Fami', 22) + pad(S.eth.mac, 20) + 'Mídia desconectada',
+      pad('Wi-Fi', 16) + pad('Intel(R) Wi-Fi 6 AX20', 22) + pad(S.wifi.mac, 20) + (myIP() ? '\\Device\\Tcpip_' + S.wifi.guid : 'Mídia desconectada'), '']);
+    note('getmac /v', 'Agora aparece o <b>nome de cada adaptador</b> (Ethernet, Wi-Fi). Compare com o “Endereço Físico” do ' + c('ipconfig /all') + ': deve ser igual. O MAC é usado para cadastrar máquinas no roteador ou em listas de controle de acesso.');
+    return;
+  }
+  line('ERRO: Argumento/opção inválido - \'' + args[0] + '\'.'); line('Digite "GETMAC /?" para obter detalhes sobre o uso.');
+}
+
+/* =========================================================
+ * NETSH
+ * ========================================================= */
+function findIface(name) { var n = lc(name); if (n === 'wi-fi' || n === 'wifi') return S.wifi; if (n === 'ethernet') return S.eth; return null; }
+function cNetsh(args) {
+  var a = []; for (var i = 0; i < args.length; i++) a.push(lc(args[i]));
+  var w0 = a[0], w1 = a[1];
+  if (!a.length) { lines(HELP.netsh); note('netsh', 'O ' + c('netsh') + ' é a ferramenta de configuração de rede do Windows pela linha de comando.'); return; }
+  if (w0 === 'winsock' && w1 === 'reset') {
+    lines(['', 'Redefinição do Catálogo de Winsock concluída com êxito.', 'Você deve reiniciar o computador para concluir a redefinição.', '']);
+    S.winsock = true;
+    note('netsh winsock reset', 'Restaura as configurações de rede do Windows. É preciso <b>reiniciar</b>: digite ' + c('shutdown /r /t 0') + '.');
+    return;
+  }
+  if (w0 === 'wlan' && w1 === 'show') {
+    var w2 = a[2] || '';
+    if (starts(w2, 'interface')) {
+      var sig = S.scn === 'perda' ? rnd(22, 34) : rnd(72, 92);
+      lines(['', 'Há 1 interface no sistema:', '',
+        '    Nome                   : Wi-Fi',
+        '    Descrição              : ' + S.wifi.desc, '    GUID                   : ' + S.wifi.guid.replace(/[{}]/g, '').toLowerCase(),
+        '    Endereço físico        : ' + lc(S.wifi.mac).replace(/-/g, ':'), '    Tipo de interface      : Primário',
+        '    Estado                 : conectado', '    SSID                   : ETEMB-LAB', '    ID do AP:              : c0:25:e9:44:12:92',
+        '    Banda                  : 5 GHz', '    Canal                  : 36', '    Tipo de rede           : Infraestrutura',
+        '    Tipo de rádio          : 802.11ac', '    Autenticação           : WPA2-Personal', '    Codificação            : CCMP',
+        '    Modo de conexão        : Conectar automaticamente', '    Taxa de recepção (Mbps): ' + (sig > 60 ? '866,7' : '58,5'), '    Taxa de transmissão (Mbps): ' + (sig > 60 ? '866,7' : '39'),
+        '    Sinal                  : ' + sig + '%', '    Perfil                 : ETEMB-LAB', '']);
+      note('netsh wlan show interfaces', 'Mostra a rede Wi-Fi conectada (SSID), o padrão (802.11ac), a velocidade e o <b>sinal (%)</b>. ' + (sig < 40 ? '<b>Sinal fraco</b> causa lentidão e perda de pacotes!' : 'Sinal acima de 70% é bom.'));
+      return;
+    }
+    if (starts(w2, 'profile')) {
+      lines(['', 'Perfis na interface Wi-Fi:', '', 'Perfis de política de grupo (somente leitura)', '---------------------------------', '    <Nenhum>', '', 'Perfis de usuários', '------------------',
+        '    Todos os Perfis de Usuários : ETEMB-LAB', '    Todos os Perfis de Usuários : ETEMB-ALUNOS', '    Todos os Perfis de Usuários : Biblioteca-Publica', '    Todos os Perfis de Usuários : Casa_2.4G', '']);
+      note('netsh wlan show profiles', 'Lista as redes Wi-Fi <b>salvas</b> neste computador.');
+      return;
+    }
+    if (starts(w2, 'network')) {
+      lines(['', 'Nome da interface : Wi-Fi', 'Há 4 redes visíveis no momento.', '',
+        'SSID 1 : ETEMB-LAB', '    Tipo de rede            : Infraestrutura', '    Autenticação            : WPA2-Personal', '    Criptografia            : CCMP', '',
+        'SSID 2 : ETEMB-ALUNOS', '    Tipo de rede            : Infraestrutura', '    Autenticação            : WPA2-Personal', '    Criptografia            : CCMP', '',
+        'SSID 3 : ETEMB-VISITANTES', '    Tipo de rede            : Infraestrutura', '    Autenticação            : Aberta', '    Criptografia            : Nenhuma', '',
+        'SSID 4 : DIRECT-4A-Brother', '    Tipo de rede            : Infraestrutura', '    Autenticação            : WPA2-Personal', '    Criptografia            : CCMP', '']);
+      note('netsh wlan show networks', 'Mostra as redes Wi-Fi ao alcance. Redes com autenticação <b>Aberta</b> não têm senha nem criptografia.');
+      return;
+    }
+  }
+  if ((w0 === 'interface' || w0 === 'int') && (w1 === 'show' || w1 === 'sh') && starts(a[2] || '', 'interface')) {
+    lines(['', 'Estado admin. Estado          Tipo             Nome da interface', '-------------------------------------------------------------------------',
+      'Habilitado    Desconectado    Dedicado         Ethernet', 'Habilitado    Conectado       Dedicado         Wi-Fi', '']);
+    return;
+  }
+  if ((w0 === 'interface' || w0 === 'int') && (w1 === 'ip' || w1 === 'ipv4')) {
+    var w2b = a[2], w3 = a[3];
+    if ((w2b === 'show' || w2b === 'sh') && (starts(w3 || '', 'conf') || starts(w3 || '', 'addr'))) {
+      var blocks = [S.eth, S.wifi];
+      line('');
+      for (var b = 0; b < blocks.length; b++) {
+        var it = blocks[b], isW = it === S.wifi;
+        var ip = isW ? myIP() : '';
+        line('Configuração para a interface "' + it.name + '"');
+        line('    DHCP habilitado:                         ' + (it.dhcp ? 'Sim' : 'Não'));
+        if (ip) {
+          line('    Endereço IP:                           ' + ip);
+          line('    Prefixo de sub-rede:                   ' + andIP(ip, myMask()) + '/' + maskBits(myMask()) + ' (máscara ' + myMask() + ')');
+          if (myGW()) line('    Gateway padrão:                         ' + myGW());
+          line('    Métrica de gateway:                      0');
+        }
+        line('    InterfaceMetric:                      ' + (isW ? 35 : 25));
+        var dl = isW ? myDNS() : [];
+        line('    Servidores DNS configurados ' + (it.dnsDhcp ? 'através de DHCP' : 'estaticamente') + ':  ' + (dl[0] || 'Nenhum'));
+        for (var x = 1; x < dl.length; x++) line('                                          ' + dl[x]);
+        line('    Registrar com o sufixo:           Somente primário');
+        line('    Servidores WINS configurados através de DHCP:  Nenhum');
+        line('');
+      }
+      note('netsh interface ip show config', 'Mostra a configuração IP de todas as interfaces, inclusive se o IP e o DNS vieram do <b>DHCP</b> ou foram fixados <b>estaticamente</b>.');
+      return;
+    }
+    if (w2b === 'set' && (w3 === 'address' || w3 === 'addr' || w3 === 'dns' || w3 === 'dnsservers')) {
+      var it2 = findIface(args[4] || '');
+      if (!it2) { line('Elemento não encontrado.'); note('Nome da interface', 'O nome da interface deve ser igual ao que aparece no ' + c('ipconfig') + ': ' + c('"Wi-Fi"') + ' ou ' + c('"Ethernet"') + ' (com aspas por causa do hífen e do espaço).'); return; }
+      var mode = lc(args[5] || '').replace(/^source=/, '');
+      if (w3 === 'address' || w3 === 'addr') {
+        if (mode === 'dhcp') {
+          if (it2.dhcp) { line('O DHCP já está habilitado nesta interface.'); return; }
+          it2.dhcp = true;
+          if (it2 === S.wifi) { it2.ip = '192.168.0.' + idn; it2.mask = LANMASK; it2.gw = GW; S.released = false; S.leaseStart = new Date(); }
+          else { it2.ip = ''; it2.mask = ''; it2.gw = ''; }
+          line('');
+          note('IP automático', 'A interface <b>' + esc(it2.name) + '</b> voltou a receber IP do <b>DHCP</b>. Confira com ' + c('ipconfig') + '.');
+          return;
+        }
+        if (mode === 'static') {
+          var nip = args[6], nm = args[7], ng = args[8];
+          if (!isIPv4(nip || '') || !validMask(nm || '') || (ng && !isIPv4(ng))) { line('O parâmetro está incorreto.'); line('Exemplo: netsh interface ip set address "Wi-Fi" static 192.168.0.50 255.255.255.0 192.168.0.1'); return; }
+          it2.dhcp = false; it2.ip = nip; it2.mask = nm; it2.gw = ng || '';
+          if (it2 === S.wifi) { S.released = false; S.apipaForced = false; }
+          line('');
+          if (it2 === S.eth) { note('IP fixo na Ethernet', 'A configuração foi gravada, mas a <b>Ethernet está sem cabo</b> (mídia desconectada). A conexão ativa deste PC é o ' + c('"Wi-Fi"') + '.'); return; }
+          var conflict = inArr([GW, '192.168.0.10', '192.168.0.20', '192.168.0.50'], nip) || (lanHost(nip) && +nip.split('.')[3] >= 100 && +nip.split('.')[3] !== idn);
+          if (S.scn === 'apipa') solved('Com IP fixo o computador voltou a ter endereço válido. Funciona, mas a solução recomendada é ' + c('ipconfig /release') + ' + ' + c('ipconfig /renew') + ', que mantém o IP automático.');
+          var warn = '';
+          if (!sameNet(nip, LAN, LANMASK)) warn = ' <b>Cuidado:</b> esse IP não pertence à rede do laboratório (192.168.0.0/24); a comunicação vai falhar.';
+          else if (conflict) warn = ' <b>Cuidado:</b> esse IP já é usado por outro equipamento (conflito de IP).';
+          else if (ng !== GW) warn = ' <b>Cuidado:</b> o gateway do laboratório é ' + GW + '; com outro gateway a internet não funciona.';
+          note('IP fixo', 'O Wi-Fi agora usa o IP fixo <b>' + esc(nip) + '</b>.' + warn + ' Para voltar ao automático: ' + c('netsh interface ip set address "Wi-Fi" dhcp') + '.');
+          return;
+        }
+        line('O parâmetro está incorreto.'); line('Use: netsh interface ip set address "Wi-Fi" dhcp | static IP MÁSCARA GATEWAY'); return;
+      }
+      // DNS
+      if (mode === 'dhcp') { it2.dnsDhcp = true; if (it2 === S.wifi) it2.dns = S.dhcpDns.slice(0); line(''); note('DNS automático', 'O DNS voltou a ser entregue pelo DHCP.'); return; }
+      if (mode === 'static') {
+        var dsv = args[6];
+        if (!isIPv4(dsv || '')) { line('O parâmetro está incorreto.'); return; }
+        it2.dnsDhcp = false; it2.dns = [dsv];
+        line('');
+        if (it2 === S.wifi && S.scn === 'dns' && !inArr(S.badDns, dsv) && KNOWN_DNS[dsv]) { S.badDns = []; S.cache = {}; solved('O DNS foi trocado para ' + esc(dsv) + ' e os nomes voltaram a ser traduzidos. Teste com ' + c('ping www.google.com') + '. Este era o passo 5 do roteiro.'); return; }
+        note('DNS fixo', 'O servidor DNS do ' + esc(it2.name) + ' agora é <b>' + esc(dsv) + '</b>. Confira com ' + c('ipconfig /all') + '.' + (KNOWN_DNS[dsv] ? '' : ' Atenção: esse IP não é um servidor DNS conhecido.'));
+        return;
+      }
+      line('O parâmetro está incorreto.'); return;
+    }
+  }
+  line('O comando a seguir não foi encontrado: netsh ' + args.join(' ') + '.');
+  note('netsh', 'Comandos aceitos: digite ' + c('netsh /?') + '.');
+}
+
+/* =========================================================
+ * POWERSHELL: Test-NetConnection, Get-NetIPConfiguration, Get-NetAdapter
+ * ========================================================= */
+function psEnter() {
+  setMode('ps');
+  lines(['Windows PowerShell', 'Copyright (C) Microsoft Corporation. Todos os direitos reservados.', '', 'Instale o PowerShell mais recente para obter novos recursos e aprimoramentos! https://aka.ms/PSWindows', '']);
+  note('PowerShell', 'O prompt agora começa com <b>PS</b>. O PowerShell aceita os comandos do CMD e outros mais modernos: ' + c('Test-NetConnection') + ', ' + c('Get-NetIPConfiguration') + ', ' + c('Get-NetAdapter') + '. Para voltar ao CMD: ' + c('exit') + '.');
+}
+function psKV(rows) {
+  var w = 0, i; for (i = 0; i < rows.length; i++) w = Math.max(w, rows[i][0].length);
+  line('');
+  for (i = 0; i < rows.length; i++) line(pad(rows[i][0], w) + ' : ' + rows[i][1]);
+  line('');
+}
+function cTnc(args) {
+  var target = null, port = null;
+  for (var i = 0; i < args.length; i++) {
+    var la = lc(args[i]);
+    if (la === '-port' || la === '-p') port = parseInt(args[++i], 10);
+    else if (la === '-computername' || la === '-cn') target = args[++i];
+    else if (la === '-informationlevel') i++;
+    else if (la === '-commontcpport') { var cp = lc(args[++i] || ''); port = { http: 80, rdp: 3389, smb: 445, winrm: 5985 }[cp] || null; }
+    else if (la.charAt(0) !== '-') target = args[i];
+  }
+  if (port !== null && !(port >= 1 && port <= 65535)) { line('Test-NetConnection : Não é possível validar o argumento no parâmetro \'Port\'.'); return; }
+  var tname = target || 'internetbeacon.msedge.net';
+  var job = startJob(null);
+  resolve(tname, { type: 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    if (err || !res.A[0]) {
+      later(job, function () {
+        line('AVISO: Falha na resolução de nome de ' + tname);
+        psKV([['ComputerName', tname], ['RemoteAddress', ''], ['InterfaceAlias', ''], ['SourceAddress', ''], ['PingSucceeded', 'False']]);
+        endJob(job);
+        note('Test-NetConnection', 'O nome não foi traduzido em IP: confira o DNS com ' + c('nslookup ' + tname) + '.');
+      }, 600);
+      return;
+    }
+    var ip = res.A[0];
+    var wait = 900;
+    var pst = port ? portState(ip, port) : null;
+    var r = reach(ip);
+    if ((port && (pst === 'timeout' || pst === 'unreach')) || (!port && r.st !== 'ok')) wait = 2600;
+    later(job, function () {
+      endJob(job);
+      var src = myIP() || '';
+      if (port) {
+        var okp = pst === 'open';
+        if (!okp) line('AVISO: Falha na conexão TCP com (' + ip + ' : ' + port + ')');
+        if (!okp && r.st !== 'ok') line('AVISO: Ping para ' + ip + ' falhou com (status: ' + (r.st === 'timeout' ? 'TimedOut' : 'DestinationHostUnreachable') + ')');
+        var rows = [['ComputerName', tname], ['RemoteAddress', ip]];
+        if (!okp && r.st !== 'ok') { rows.push(['RemotePort', String(port)], ['InterfaceAlias', 'Wi-Fi'], ['SourceAddress', src], ['PingSucceeded', 'False'], ['PingReplyDetails (RTT)', '0 ms'], ['TcpTestSucceeded', 'False']); }
+        else rows.push(['RemotePort', String(port)], ['InterfaceAlias', 'Wi-Fi'], ['SourceAddress', src], ['TcpTestSucceeded', okp ? 'True' : 'False']);
+        psKV(rows);
+        if (okp && r.st === 'timeout') note('Test-NetConnection', 'O ping <b>falhou</b>, mas a porta <b>' + port + '</b> está <b>aberta</b> (True). A máquina está ligada; o firewall é que bloqueia o ping. Por isso o ping sozinho não prova que um computador está desligado.');
+        else if (okp) note('Test-NetConnection', '<b>TcpTestSucceeded : True</b> = a porta ' + port + ' está aberta e o serviço respondeu. O ping diz se a máquina responde; este comando diz se o <b>serviço</b> está funcionando.');
+        else if (r.st === 'ok') note('Test-NetConnection', 'A máquina responde ao ping, mas a porta <b>' + port + '</b> está fechada (<b>False</b>): o <b>serviço está parado</b> ou o firewall bloqueia essa porta.' + (ip === '192.168.0.20' ? ' O portal está ligado, mas o servidor web não está funcionando.' : ''));
+        else note('Test-NetConnection', 'Nem o ping nem a porta responderam: o destino está inacessível. Volte ao roteiro e teste o gateway e a internet.');
+      } else {
+        var ok = r.st === 'ok';
+        if (!ok) line('AVISO: Ping para ' + tname + ' falhou com (status: ' + (r.st === 'timeout' ? 'TimedOut' : 'DestinationHostUnreachable') + ')');
+        psKV([['ComputerName', tname], ['RemoteAddress', ip], ['InterfaceAlias', 'Wi-Fi'], ['SourceAddress', src], ['PingSucceeded', ok ? 'True' : 'False'], ['PingReplyDetails (RTT)', (ok ? r.ms : 0) + ' ms']]);
+        note('Test-NetConnection sem -Port', 'Sem o ' + c('-Port') + ', o teste é parecido com o ping. Para testar um serviço, informe a porta: ' + c('tnc ' + tname + ' -Port 443') + '.');
+      }
+    }, wait);
+  });
+}
+function cGetNetIP() {
+  var ip = myIP();
+  psKV([['InterfaceAlias', 'Wi-Fi'], ['InterfaceIndex', String(S.wifi.idx)], ['InterfaceDescription', S.wifi.desc], ['NetProfile.Name', ip && !apipaOn() ? 'ETEMB-LAB' : 'Rede não identificada'],
+    ['IPv4Address', ip || ''], ['IPv6DefaultGateway', ''], ['IPv4DefaultGateway', myGW()], ['DNSServer', (myDNS().length ? myDNS().join('\n' + pad('', 23)) : '')]]);
+  psKV([['InterfaceAlias', 'Ethernet'], ['InterfaceIndex', String(S.eth.idx)], ['InterfaceDescription', S.eth.desc], ['NetAdapter.Status', 'Disconnected']]);
+  note('Get-NetIPConfiguration', 'Versão moderna do ' + c('ipconfig') + ' no PowerShell, com a saída organizada em campos.');
+}
+function cGetNetAdapter() {
+  line('');
+  line(pad('Name', 12) + pad('InterfaceDescription', 36) + lpad('ifIndex', 8) + ' ' + pad('Status', 13) + pad('MacAddress', 19) + lpad('LinkSpeed', 10));
+  line(pad('----', 12) + pad('--------------------', 36) + lpad('-------', 8) + ' ' + pad('------', 13) + pad('----------', 19) + lpad('---------', 10));
+  line(pad('Wi-Fi', 12) + pad(S.wifi.desc, 36) + lpad(S.wifi.idx, 8) + ' ' + pad(S.scn === 'tcpip' ? 'Up' : 'Up', 13) + pad(S.wifi.mac, 19) + lpad(S.scn === 'perda' ? '58.5 Mbps' : '866.7 Mbps', 10));
+  line(pad('Ethernet', 12) + pad(S.eth.desc, 36) + lpad(S.eth.idx, 8) + ' ' + pad('Disconnected', 13) + pad(S.eth.mac, 19) + lpad('0 bps', 10));
+  line('');
+  note('Get-NetAdapter', 'Mostra as placas de rede, o <b>status</b> (Up = conectada, Disconnected = sem cabo/sem sinal) e a <b>velocidade do link</b>.');
+}
+
+/* =========================================================
+ * CURL
+ * ========================================================= */
+function cCurl(args) {
+  var head = false, inc = false, url = null;
+  for (var i = 0; i < args.length; i++) {
+    var la = args[i];
+    if (la === '-I' || la === '--head') head = true;
+    else if (la === '-i' || la === '--include') inc = true;
+    else if (la === '-s' || la === '-L' || la === '-v' || la === '-k' || la === '-4') { /* aceitas */ }
+    else if (la.charAt(0) === '-') { line('curl: option ' + la + ': is unknown'); line('curl: try \'curl --help\' for more information'); return; }
+    else url = la;
+  }
+  if (!url) { line('curl: try \'curl --help\' for more information'); return; }
+  var m = /^(https?):\/\/([^\/:]+)(?::(\d+))?(\/.*)?$/i.exec(url) || /^()([^\/:]+)(?::(\d+))?(\/.*)?$/.exec(url);
+  if (!m) { line('curl: (3) URL rejected: Malformed input to a URL function'); return; }
+  var scheme = lc(m[1] || 'http'), host = lc(m[2]), port = m[3] ? +m[3] : (scheme === 'https' ? 443 : 80), path = m[4] || '/';
+  var job = startJob(null);
+  resolve(host, { type: 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    if (err || !res.A[0]) { endJob(job); line('curl: (6) Could not resolve host: ' + host); note('curl', 'O nome não foi traduzido em IP (DNS). Teste ' + c('nslookup ' + host) + '.'); return; }
+    var ip = res.A[0], ps = portState(ip, port);
+    var wait = ps === 'open' ? rnd(250, 600) : (ps === 'closed' ? 200 : 2600);
+    later(job, function () {
+      endJob(job);
+      if (ps === 'fail') { line('curl: (7) Failed to connect to ' + host + ' port ' + port + ' after 0 ms: Couldn\'t connect to server'); return; }
+      if (ps === 'timeout' || ps === 'unreach') { line('curl: (28) Failed to connect to ' + host + ' port ' + port + ' after 21047 ms: Couldn\'t connect to server'); note('curl', 'Tempo esgotado: o servidor não respondeu na porta ' + port + '. Pode estar fora do ar, sem rota ou com firewall.'); return; }
+      if (ps === 'closed') { line('curl: (7) Failed to connect to ' + host + ' port ' + port + ' after ' + rnd(1, 4) + ' ms: Couldn\'t connect to server'); note('curl', 'A máquina respondeu, mas recusou a conexão na porta ' + port + ': o <b>serviço web não está funcionando</b>.'); return; }
+      addConn(ip, port, 'TIME_WAIT', 0);
+      if (/^(ifconfig\.me|icanhazip\.com|api\.ipify\.org|ipinfo\.io)$/.test(host)) {
+        line(S.pub || '203.0.113.' + (idn - 60));
+        note('IP público x IP privado', 'Este é o seu <b>IP público</b>, o endereço com que você aparece na internet. Ele é diferente do IP <b>privado</b> do ' + c('ipconfig') + ' (' + esc(myIP()) + ') porque o roteador faz <b>NAT</b>: vários PCs saem com o mesmo IP público.' + (S.net === 'real' ? ' (Valor real do seu celular.)' : ' (Valor de exemplo: o celular está sem acesso direto à internet.)'));
+        return;
+      }
+      var date = new Date().toUTCString();
+      var hdr, body;
+      if (host === 'google.com' && path === '/') {
+        hdr = ['HTTP/1.1 301 Moved Permanently', 'Location: ' + scheme + '://www.google.com/', 'Content-Type: text/html; charset=UTF-8', 'Date: ' + date, 'Server: gws', 'Content-Length: 220'];
+        body = ['<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">', '<TITLE>301 Moved</TITLE></HEAD><BODY>', '<H1>301 Moved</H1>', 'The document has moved', '<A HREF="' + scheme + '://www.google.com/">here</A>.', '</BODY></HTML>'];
+      } else if (/google\./.test(host)) {
+        hdr = ['HTTP/1.1 200 OK', 'Content-Type: text/html; charset=ISO-8859-1', 'Date: ' + date, 'Server: gws', 'X-XSS-Protection: 0', 'X-Frame-Options: SAMEORIGIN', 'Transfer-Encoding: chunked', 'Cache-Control: private, max-age=0'];
+        body = ['<!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="pt-BR"><head><title>Google</title>', '…'];
+      } else if (lanHost(ip)) {
+        hdr = ['HTTP/1.1 200 OK', 'Date: ' + date, 'Server: ' + (ip === '192.168.0.20' ? 'Apache/2.4.58 (Ubuntu)' : (ip === GW ? 'lighttpd' : 'debut/1.30')), 'Content-Type: text/html; charset=UTF-8', 'Content-Length: ' + rnd(900, 9000)];
+        body = ['<!DOCTYPE html><html lang="pt-BR"><head><title>' + (ip === '192.168.0.20' ? 'Portal ETEMB' : (ip === GW ? 'Roteador - Login' : 'Impressora')) + '</title>', '…'];
+      } else {
+        hdr = ['HTTP/1.1 200 OK', 'Date: ' + date, 'Content-Type: text/html; charset=utf-8', 'Server: nginx', 'Cache-Control: max-age=600'];
+        body = ['<!DOCTYPE html><html><head><title>' + host + '</title>', '…'];
+      }
+      if (head) {
+        lines(hdr); line('');
+        note('curl -I', 'Mostra só o <b>cabeçalho</b> da resposta. ' + (hdr[0].indexOf('200') !== -1 ? '<b>200 OK</b> = site funcionando.' : '<b>301</b> = o site redireciona para outro endereço (veja o campo Location).') + ' Use para verificar se um serviço web está no ar.');
+      } else {
+        if (inc) { lines(hdr); line(''); }
+        lines(body);
+        line('(conteúdo encurtado pelo simulador)', 'sys');
+        note('curl', 'Sem opções, o curl baixa o <b>código HTML</b> da página. Para ver só se o site está no ar, use ' + c('curl -I ' + url) + '.');
+      }
+    }, wait);
+  });
+}
+
+/* =========================================================
+ * NET, SYSTEMINFO, SSH, NMAP, SHUTDOWN, DIR
+ * ========================================================= */
+function cNet(args) {
+  var sub = lc(args[0] || '');
+  if (sub === 'view') {
+    if (!myIP() || S.scn === 'lan' || S.scn === 'tcpip') { line('Erro de sistema 6118.'); line(''); line('A lista de servidores deste grupo de trabalho não está disponível no momento'); return; }
+    var rows = [['\\\\ETEMB-PC' + (idn === 112 ? 113 : 112), ''], ['\\\\ETEMB-PC' + (idn === 118 ? 119 : 118), ''], ['\\\\' + S.hostname, ''], ['\\\\IMPRESSORA', 'Brother HL-L2370DW'], ['\\\\SRV-LAB', 'Servidor do laboratório (Samba)']];
+    lines(['Nome do servidor            Comentário', '', '-------------------------------------------------------------------------------']);
+    for (var i = 0; i < rows.length; i++) line(pad(rows[i][0], 28) + rows[i][1]);
+    line('Comando concluído com êxito.'); line('');
+    note('net view', 'Lista os computadores visíveis na rede local (compartilhamento de arquivos do Windows).');
+    return;
+  }
+  if (sub === 'share') {
+    lines(['', 'Nome do compartilhamento   Recurso                       Comentário', '', '-------------------------------------------------------------------------------',
+      'C$           C:\\                             Compartilhamento padrão', 'IPC$                                         IPC remoto', 'ADMIN$       C:\\WINDOWS                      Administração remota',
+      'Trabalhos    C:\\Users\\aluno\\Trabalhos', 'Comando concluído com êxito.', '']);
+    note('net share', 'Mostra as pastas <b>compartilhadas por este computador</b>. Os que terminam com <b>$</b> são compartilhamentos administrativos, ocultos na rede.');
+    return;
+  }
+  if (sub === 'use') {
+    var drive = args[1], path = args[2];
+    if (!drive) {
+      lines(['Novas conexões serão lembradas.', '', '']);
+      if (!S.shares.length) { line('Não há entradas na lista.'); line(''); return; }
+      lines(['Status       Local     Remoto                    Rede', '', '-------------------------------------------------------------------------------']);
+      for (var s = 0; s < S.shares.length; s++) line(pad('OK', 13) + pad(S.shares[s].d, 10) + pad(S.shares[s].p, 26) + 'Microsoft Windows Network');
+      line('Comando concluído com êxito.'); line(''); return;
+    }
+    if (lc(path) === '/delete' || lc(path) === '/d') {
+      for (var d = 0; d < S.shares.length; d++) { if (lc(S.shares[d].d) === lc(drive)) { S.shares.splice(d, 1); line(drive.toUpperCase() + ' foi excluído com êxito.'); line(''); return; } }
+      line('A conexão de rede não foi encontrada.'); return;
+    }
+    var mm = /^\\\\([^\\]+)\\(.+)$/.exec(path || '');
+    if (!/^[a-z]:$/i.test(drive) || !mm) { line('A sintaxe deste comando é:'); line(''); line('NET USE [unidade:] [\\\\computador\\compartilhamento] [/DELETE]'); return; }
+    var srv = lc(mm[1]), share = lc(mm[2]);
+    var job = startJob(null);
+    later(job, function () {
+      endJob(job);
+      var okSrv = (srv === 'srv-lab' || srv === '192.168.0.10' || srv === 'srv-lab.etemb.local') && portState('192.168.0.10', 445) === 'open';
+      if (!okSrv) { line('Erro de sistema 53.'); line(''); line('O caminho da rede não foi encontrado.'); line(''); note('net use', 'O servidor não foi encontrado na rede. Neste laboratório o servidor de arquivos é ' + c('\\\\srv-lab') + ' (pastas: pasta, publico, trabalhos).'); return; }
+      if (!inArr(['pasta', 'publico', 'trabalhos'], share)) { line('Erro de sistema 67.'); line(''); line('Não foi possível encontrar o nome da rede.'); line(''); return; }
+      for (var e = 0; e < S.shares.length; e++) { if (lc(S.shares[e].d) === lc(drive)) { line('Erro de sistema 85.'); line(''); line('O nome do dispositivo local já está em uso.'); line(''); return; } }
+      S.shares.push({ d: drive.toUpperCase(), p: '\\\\' + srv + '\\' + share });
+      line('Comando concluído com êxito.'); line('');
+      note('net use', 'A pasta de rede foi mapeada como a unidade <b>' + esc(drive.toUpperCase()) + '</b>. Veja os mapeamentos com ' + c('net use') + ' e remova com ' + c('net use ' + drive.toUpperCase() + ' /delete') + '.');
+    }, 900);
+    return;
+  }
+  line(''); lines(HELP.net);
+}
+function cSysteminfo() {
+  var ip = myIP();
+  var bootT = new Date(S.boot - 3 * 3600000);
+  var L = [
+    '', kv('Nome do host', S.hostname, ''), kv('Nome do sistema operacional', 'Microsoft Windows 11 Pro', ''), kv('Versão do sistema operacional', '10.0.26100 N/A compilação 26100', ''),
+    kv('Fabricante do sistema operacional', 'Microsoft Corporation', ''), kv('Configuração do SO', 'Estação de trabalho autônoma', ''),
+    kv('Proprietário registrado', 'ETEMB', ''), kv('Data da instalação original', '03/02/2026, 08:14:22', ''),
+    kv('Tempo de Inicialização do Sistema', fmtShort(bootT) + ', ' + fmtTime(bootT) + ':05', ''), kv('Fabricante do sistema', 'Dell Inc.', ''), kv('Modelo do sistema', 'OptiPlex 7010', ''),
+    kv('Tipo de sistema', 'x64-based PC', ''), kv('Memória física total', '16.143 MB', ''), kv('Domínio', 'WORKGROUP', ''),
+    kv('Placa(s) de Rede', '2 NIC(s) instalado(s).', ''),
+    '                                 [01]: ' + S.eth.desc, '                                       Nome da conexão: Ethernet', '                                       Status:          Mídia desconectada',
+    '                                 [02]: ' + S.wifi.desc, '                                       Nome da conexão: Wi-Fi',
+    '                                       DHCP ativado:    ' + (S.wifi.dhcp ? 'Sim' : 'Não')
+  ];
+  if (S.wifi.dhcp && ip && !apipaOn()) L.push('                                       Servidor DHCP:   ' + GW);
+  L.push('                                       Endereço(s) IP');
+  if (ip) L.push('                                       [01]: ' + ip);
+  L.push('                                       [0' + (ip ? 2 : 1) + ']: ' + LL6);
+  L.push(kv('Requisitos do Hyper-V', 'Hipervisor detectado.', ''));
+  L.push('');
+  lines(L);
+  note('systeminfo', 'Mostra os dados do sistema, inclusive as <b>placas de rede</b> e seus IPs. Filtre com ' + c('systeminfo | findstr /i "rede"') + '.');
+}
+function cDir() {
+  lines([' O volume na unidade C não tem nome.', ' O Número de Série do Volume é 6A2F-9C11', '', ' Pasta de C:\\Users\\aluno', '',
+    fmtShort(new Date()) + '  ' + fmtTime(new Date()) + '    <DIR>          .', fmtShort(new Date()) + '  ' + fmtTime(new Date()) + '    <DIR>          ..',
+    '03/02/2026  08:30    <DIR>          Desktop', '03/02/2026  08:30    <DIR>          Documents', '03/02/2026  08:30    <DIR>          Downloads', '10/09/2026  19:12    <DIR>          Trabalhos',
+    '               0 arquivo(s)              0 bytes', '               6 pasta(s)   182.344.716.288 bytes disponíveis']);
+}
+function cShutdown(args) {
+  var a = lc(args.join(' '));
+  if (a.indexOf('/r') === -1 && a.indexOf('/s') === -1) { line(''); lines(HELP.shutdown); return; }
+  if (a.indexOf('/s') !== -1) { line('O simulador não desliga. Use ' + 'shutdown /r /t 0 para reiniciar.'); return; }
+  var job = startJob(null);
+  line('Reiniciando o computador...', 'sys');
+  later(job, function () {
+    endJob(job);
+    out.innerHTML = '';
+    var fixTcp = S.scn === 'tcpip' && S.winsock;
+    S.released = false; S.apipaForced = false; S.arp = []; seedArp(); S.cache = {};
+    S.uroutes = S.uroutes.filter ? S.uroutes.filter(function (r) { return r.persist; }) : [];
+    S.winsock = false; S.boot = now();
+    if (S.mode !== 'cmd') setMode('cmd');
+    banner(true);
+    if (fixTcp) solved('Depois do ' + c('netsh winsock reset') + ' e da reinicialização, a pilha TCP/IP voltou a funcionar. Teste ' + c('ping 127.0.0.1') + '. Este era o passo 2 do roteiro.');
+    else note('Reiniciado', 'O computador foi reiniciado: tabela ARP, cache de DNS e rotas temporárias foram apagados. Rotas criadas com ' + c('route -p add') + ' continuam.');
+  }, 1800);
+}
+
+/* --- SSH para o servidor Linux do laboratório --- */
+function cSsh(args) {
+  var target = null;
+  for (var i = 0; i < args.length; i++) { if (args[i].charAt(0) === '-') { if (/^-[pliF]$/.test(args[i])) i++; continue; } target = args[i]; }
+  if (!target) { lines(HELP.ssh); return; }
+  var user = 'aluno', host = target;
+  if (target.indexOf('@') !== -1) { user = target.split('@')[0] || 'aluno'; host = target.split('@')[1]; }
+  var job = startJob(null);
+  resolve(host, { type: 'A', cache: true }, function (err, res) {
+    if (!job.alive) return;
+    if (err || !res.A[0]) { endJob(job); line('ssh: Could not resolve hostname ' + host + ': Este host não é conhecido.'); return; }
+    var ip = res.A[0], ps = portState(ip, 22);
+    later(job, function () {
+      endJob(job);
+      if (ps === 'closed') { line('ssh: connect to host ' + host + ' port 22: Connection refused'); note('ssh', 'A máquina respondeu, mas não tem servidor SSH (porta 22 fechada). Neste laboratório, o servidor com SSH é ' + c('192.168.0.10') + '.'); return; }
+      if (ps !== 'open') { line('ssh: connect to host ' + host + ' port 22: Connection timed out'); return; }
+      S.ssh = { user: user, ip: ip, host: host };
+      if (ip === '192.168.0.10') {
+        line('The authenticity of host \'' + host + ' (' + ip + ')\' can\'t be established.');
+        line('ED25519 key fingerprint is SHA256:q3Vx9mJ0k2Lr8hT1yZb7cWfN4pXs6dGaE5uKiOo0RmM.');
+        line('This key is not known by any other names.');
+        line('Are you sure you want to continue connecting (yes/no/[fingerprint])?');
+        setMode('sshyes');
+        note('Primeira conexão SSH', 'O SSH mostra a “impressão digital” do servidor para você confirmar que está falando com a máquina certa. Digite ' + c('yes') + '.');
+      } else {
+        line(user + '@' + host + ': Permission denied (publickey).');
+        note('ssh', 'O SSH respondeu, mas este equipamento só aceita login por chave. Pratique com ' + c('ssh aluno@192.168.0.10') + '.');
+      }
+    }, ps === 'open' ? 600 : (ps === 'closed' ? 300 : 2600));
+  });
+}
+function sshYes(t) {
+  var a = lc(t);
+  if (a === 'yes' || a === 'y' || a === 'sim') {
+    line('Warning: Permanently added \'' + S.ssh.host + '\' (ED25519) to the list of known hosts.');
+    setMode('sshpass');
+    line(S.ssh.user + '@' + S.ssh.host + '\'s password:');
+    note('Senha', 'Digite qualquer senha (no laboratório real seria a sua). Repare que a senha <b>não aparece</b> enquanto você digita.');
+  } else if (a === 'no' || a === 'n' || a === 'não' || a === 'nao') {
+    line('Host key verification failed.'); setMode('cmd');
+  } else {
+    line('Please type \'yes\', \'no\' or the fingerprint:');
+  }
+}
+function sshPass(t) {
+  if (!t) { line('Permission denied, please try again.'); line(S.ssh.user + '@' + S.ssh.host + '\'s password:'); return; }
+  setMode('ssh');
+  var d = new Date();
+  lines(['Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-85-generic x86_64)', '', ' * Documentation:  https://help.ubuntu.com', '',
+    '  System load:  0.08              Processes:             132', '  Usage of /:   23.4% of 97.87GB   Users logged in:       1',
+    '  Memory usage: 18%               IPv4 address for eno1: 192.168.0.10', '', 'Last login: ' + d.toDateString() + ' ' + fmtTime(d) + ' from 192.168.0.' + (idn === 150 ? 151 : 150)]);
+  S.user2 = S.ssh.user;
+  pl.textContent = S.ssh.user + '@srv-lab:~$ ';
+  note('Você está no Linux (servidor srv-lab)', 'Os comandos agora rodam no servidor Ubuntu. Experimente os equivalentes do quadro-resumo: ' + c('ip a') + ', ' + c('ip route') + ', ' + c('ip neigh') + ', ' + c('ip link') + ', ' + c('ss -tuln') + ', ' + c('hostname') + ', ' + c('ping -c 4 8.8.8.8') + '. Para sair: ' + c('exit') + '.');
+}
+function linuxCmd(t) {
+  var parts = splitPipe(t);
+  var tk = tokenize(parts[0]), n = lc(tk[0] || ''), a = tk.slice(1), as = lc(a.join(' '));
+  var me = lc(S.wifi.mac).replace(/-/g, ':'), my = myIP() || '192.168.0.' + idn;
+  if (n === 'exit' || n === 'logout') { line('logout'); line('Connection to ' + S.ssh.host + ' closed.'); setMode('cmd'); return; }
+  if (n === 'clear') { out.innerHTML = ''; return; }
+  if (n === 'hostname') { line(as === '-i' || as === '-I' ? '192.168.0.10' : 'srv-lab'); return; }
+  if (n === 'whoami') { line(S.ssh.user); return; }
+  if (n === 'pwd') { line('/home/' + S.ssh.user); return; }
+  if (n === 'ls') { line('pasta  publico  trabalhos'); return; }
+  if (n === 'uname') { line(as === '-a' ? 'Linux srv-lab 6.8.0-85-generic #85-Ubuntu SMP PREEMPT_DYNAMIC x86_64 x86_64 x86_64 GNU/Linux' : 'Linux'); return; }
+  if (n === 'sudo') { line('[sudo] password for ' + S.ssh.user + ': '); line(S.ssh.user + ' is not in the sudoers file.'); note('sudo', 'O ' + c('sudo') + ' executa comandos como administrador no Linux. Este usuário não tem permissão, o que é o normal para alunos.'); return; }
+  if (n === 'ip') {
+    var sub = lc(a[0] || '');
+    if (sub === 'a' || sub === 'addr' || sub === 'address') {
+      lines(['1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000', '    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00', '    inet 127.0.0.1/8 scope host lo', '       valid_lft forever preferred_lft forever',
+        '2: eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000', '    link/ether f8:bc:12:4a:90:11 brd ff:ff:ff:ff:ff:ff', '    inet 192.168.0.10/24 brd 192.168.0.255 scope global eno1', '       valid_lft forever preferred_lft forever', '    inet6 fe80::fabc:12ff:fe4a:9011/64 scope link', '       valid_lft forever preferred_lft forever']);
+      note('ip a', 'É o “ipconfig” do Linux. O IP aparece na linha <b>inet</b> já com a máscara em notação CIDR (<b>/24</b> = 255.255.255.0). O MAC está em <b>link/ether</b>.');
+      return;
+    }
+    if (sub === 'link' || sub === 'l') {
+      lines(['1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000', '    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00', '2: eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000', '    link/ether f8:bc:12:4a:90:11 brd ff:ff:ff:ff:ff:ff']);
+      note('ip link', 'Equivale ao ' + c('getmac') + ' do Windows: o MAC está no campo <b>link/ether</b>.');
+      return;
+    }
+    if (sub === 'route' || sub === 'r') {
+      lines(['default via 192.168.0.1 dev eno1 proto static', '192.168.0.0/24 dev eno1 proto kernel scope link src 192.168.0.10']);
+      note('ip route', 'Equivale ao ' + c('route print') + '. A linha <b>default via 192.168.0.1</b> é a rota padrão (o 0.0.0.0 do Windows).');
+      return;
+    }
+    if (sub === 'neigh' || sub === 'n' || sub === 'neighbor') {
+      lines(['192.168.0.1 dev eno1 lladdr ' + (S.scn === 'spoof' ? 'a0:36:bc:77:0e:15' : 'c0:25:e9:44:12:90') + ' REACHABLE', my + ' dev eno1 lladdr ' + me + ' REACHABLE', '192.168.0.20 dev eno1 lladdr 52:54:00:1d:7a:20 STALE']);
+      note('ip neigh', 'Equivale ao ' + c('arp -a') + ': mostra o IP e o MAC (lladdr) dos vizinhos na rede local.');
+      return;
+    }
+    line('Object "' + (a[0] || '') + '" is unknown, try "ip help".'); return;
+  }
+  if (n === 'ss') {
+    if (/[tu]/.test(as) && /l/.test(as)) {
+      lines(['Netid State  Recv-Q Send-Q Local Address:Port  Peer Address:Port', 'udp   UNCONN 0      0       192.168.0.255:137        0.0.0.0:*', 'udp   UNCONN 0      0       192.168.0.255:138        0.0.0.0:*',
+        'tcp   LISTEN 0      4096          0.0.0.0:22         0.0.0.0:*', 'tcp   LISTEN 0      50            0.0.0.0:139        0.0.0.0:*', 'tcp   LISTEN 0      50            0.0.0.0:445        0.0.0.0:*', 'tcp   LISTEN 0      2             0.0.0.0:3389       0.0.0.0:*']);
+      note('ss -tuln', 'É o “netstat” do Linux: <b>-t</b> TCP, <b>-u</b> UDP, <b>-l</b> só portas em escuta, <b>-n</b> numérico. Este servidor oferece SSH (22), compartilhamento de arquivos (139/445) e área de trabalho remota (3389).');
+    } else {
+      lines(['Netid State Recv-Q Send-Q   Local Address:Port      Peer Address:Port Process', 'tcp   ESTAB 0      0         192.168.0.10:22       ' + pad(my + ':' + eph(), 22) + '']);
+      note('ss -tun', 'Mostra as conexões ativas: a sua sessão SSH aparece como ESTAB (estabelecida) na porta 22. A coluna Process só é preenchida para o administrador (root).');
+    }
+    return;
+  }
+  if (n === 'ping') { cPing(a, true); return; }
+  var NF = { ifconfig: 'net-tools', traceroute: 'traceroute', dig: 'bind9-dnsutils', nslookup: 'bind9-dnsutils', host: 'bind9-host', mtr: 'mtr-tiny', nmap: 'nmap', netstat: 'net-tools', arp: 'net-tools', route: 'net-tools' };
+  if (NF[n]) {
+    lines(['Command \'' + n + '\' not found, but can be installed with:', '', 'sudo apt install ' + NF[n]]);
+    if (n === 'ifconfig' || n === 'netstat' || n === 'arp' || n === 'route') note('Comando antigo', 'No Linux atual, ' + c(n) + ' faz parte do pacote <b>net-tools</b>, que não vem instalado. Use os comandos novos: ' + c({ ifconfig: 'ip a', netstat: 'ss -tuln', arp: 'ip neigh', route: 'ip route' }[n]) + '.');
+    return;
+  }
+  if (inArr(['ipconfig', 'getmac', 'tracert', 'pathping', 'cls', 'tasklist'], n)) {
+    line(n + ': command not found');
+    note('Você está no Linux', c(n) + ' é comando do Windows. Aqui use: ' + c({ ipconfig: 'ip a', getmac: 'ip link', tracert: 'traceroute', pathping: 'mtr', cls: 'clear', tasklist: 'ps aux' }[n]) + '. Para voltar ao Windows: ' + c('exit') + '.');
+    return;
+  }
+  if (n === 'ps') { lines(['    PID TTY          TIME CMD', '   1544 pts/0    00:00:00 bash', '   1601 pts/0    00:00:00 ps']); return; }
+  line(n + ': command not found');
+}
+
+/* --- NMAP (apenas na rede do laboratório) --- */
+function cNmap(args) {
+  var sn = false, target = null;
+  for (var i = 0; i < args.length; i++) { var la = lc(args[i]); if (la === '-sn' || la === '-sp') sn = true; else if (la.charAt(0) !== '-') target = args[i]; }
+  if (!target) { lines(HELP.nmap); return; }
+  var scope = null;
+  if (/^192\.168\.0\.0\/24$/.test(target) || /^192\.168\.0\.(\*|1-254)$/.test(target)) scope = 'net';
+  else if (isIPv4(target) && sameNet(target, LAN, LANMASK)) scope = target;
+  else if (LOCAL_NAMES[lc(target)]) scope = LOCAL_NAMES[lc(target)];
+  if (!scope) {
+    line('Varredura bloqueada pelo simulador.');
+    box('warn', 'Ética e lei', 'Use o nmap e outras ferramentas de varredura <b>somente na rede do laboratório</b> ou em redes com autorização. Varrer redes de terceiros sem permissão pode ser crime (<b>Lei 12.737/2012</b>). Aqui só é permitido ' + c('nmap 192.168.0.0/24') + ' ou um IP dessa rede.', true);
+    return;
+  }
+  if (!myIP() || S.scn === 'tcpip' || apipaOn()) { line('Starting Nmap 7.95 ( https://nmap.org )'); line('WARNING: Unable to find appropriate interface for system route to ' + (scope === 'net' ? '192.168.0.0' : scope)); return; }
+  if (!S.nmapWarned) { S.nmapWarned = true; box('warn', 'Ética e lei', 'Use o nmap somente na rede do laboratório ou em redes em que você tem autorização. Varrer redes de terceiros sem permissão pode ser crime (Lei 12.737/2012).', true); }
+  var d = new Date();
+  line('Starting Nmap 7.95 ( https://nmap.org ) at ' + d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate()) + ' ' + fmtTime(d) + ' Hora oficial do Brasil');
+  var ips = [];
+  if (scope === 'net') {
+    ips = [GW, '192.168.0.10', '192.168.0.20', '192.168.0.50'];
+    var pcs = [112, 118, 123, 131, 147, 160, idn];
+    if (S.scn === 'spoof') pcs.push(137);
+    pcs.sort(function (x, y) { return x - y; });
+    for (var p = 0; p < pcs.length; p++) { var ipx = '192.168.0.' + pcs[p]; if (!inArr(ips, ipx)) ips.push(ipx); }
+  } else ips = [scope];
+  var job = startJob(null);
+  var up = 0, k = 0, t0 = now();
+  function nextHost() {
+    if (k >= ips.length) {
+      line('Nmap done: ' + (scope === 'net' ? 256 : 1) + ' IP address' + (scope === 'net' ? 'es' : '') + ' (' + up + ' host' + (up === 1 ? '' : 's') + ' up) scanned in ' + ((now() - t0) / 1000 + (scope === 'net' ? 4 : 0.5)).toFixed(2) + ' seconds');
+      endJob(job);
+      note(sn ? 'nmap -sn' : 'nmap', sn ? 'Com <b>-sn</b> o nmap só descobre quais hosts estão <b>ligados</b>, sem testar portas.' : 'O nmap descobriu os dispositivos ativos e as <b>portas abertas</b> de cada um. Ex.: 53 = DNS, 80/443 = web, 22 = SSH, 445 = compartilhamento do Windows, 3389 = área de trabalho remota, 9100 = impressão.');
+      return;
+    }
+    var ip = ips[k++], h = lanHost(ip), st = reach(ip), self = ip === myIP();
+    if (S.scn === 'lan' && !self) { later(job, nextHost, 120); return; }
+    up++;
+    var nm = h && !h.visitor ? h.name : (h && h.visitor ? h.name.toLowerCase() : null);
+    line('Nmap scan report for ' + (nm ? nm + ' (' + ip + ')' : ip));
+    line('Host is up' + (self ? '.' : ' (0.00' + rnd(10, 89) + 's latency).'));
+    if (!sn) {
+      var ports = h ? h.ports : [135, 139, 445];
+      line('Not shown: ' + (1000 - ports.length) + ' ' + (h && h.ttl === 128 ? 'filtered tcp ports (no-response)' : 'closed tcp ports (reset)'));
+      line(pad('PORT', 9) + pad('STATE', 6) + 'SERVICE');
+      for (var q = 0; q < ports.length; q++) line(pad(ports[q] + '/tcp', 9) + pad('open', 6) + ({ 53: 'domain', 80: 'http', 443: 'https', 22: 'ssh', 139: 'netbios-ssn', 445: 'microsoft-ds', 3389: 'ms-wbt-server', 631: 'ipp', 9100: 'jetdirect', 135: 'msrpc' }[ports[q]] || 'unknown'));
+    }
+    if (!self && h) line('MAC Address: ' + (arpMacFor(ip) || h.mac).toUpperCase().replace(/-/g, ':') + ' (' + (S.scn === 'spoof' && ip === GW ? 'ASUSTek Computer' : h.vendor) + ')');
+    line('');
+    later(job, nextHost, scope === 'net' ? 450 : 300);
+  }
+  later(job, nextHost, 700);
+}
+
+/* =========================================================
+ * INTERFACE: chips, teclas, histórico, Tab, modal
+ * ========================================================= */
+function banner(rebooted) {
+  line('Microsoft Windows [versão 10.0.26100.6899]');
+  line('(c) Microsoft Corporation. Todos os direitos reservados.');
+  line('');
+  if (!rebooted) {
+    box('', 'Laboratório de Redes · Apostila 02', 'Este celular virou o computador <b>' + esc(S.hostname) + '</b> do laboratório (IP ' + esc(S.wifi.ip) + '). Digite um comando e toque em <b>Executar</b>, ou use os atalhos acima do teclado. A lista completa está em <b>Apostila</b>. Para praticar diagnóstico, abra um <b>Chamado</b>. Comece com ' + c('ipconfig') + '.', true);
+  }
+}
+var CHIPS = ['ipconfig', 'ipconfig /all', 'ping 127.0.0.1', 'ping 192.168.0.1', 'ping 8.8.8.8', 'ping www.google.com', 'tracert www.google.com', 'nslookup www.google.com', 'netstat -ano', 'arp -a', 'route print -4', 'getmac /v', 'hostname', 'whoami', 'help', 'cls'];
+function buildChips() {
+  var box2 = $('chips');
+  for (var i = 0; i < CHIPS.length; i++) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = CHIPS[i];
+    b.setAttribute('data-cmd', CHIPS[i]);
+    box2.appendChild(b);
+  }
+  box2.addEventListener('click', function (e) {
+    var t = e.target; while (t && t !== box2 && !t.getAttribute('data-cmd')) t = t.parentNode;
+    if (t && t !== box2) quick(t.getAttribute('data-cmd'));
+  });
+}
+function insertAtCursor(txt) {
+  var v = cmdEl.value, s = v.length, e2 = v.length;
+  try { if (typeof cmdEl.selectionStart === 'number') { s = cmdEl.selectionStart; e2 = cmdEl.selectionEnd; } } catch (x) {}
+  cmdEl.value = v.slice(0, s) + txt + v.slice(e2);
+  try { cmdEl.setSelectionRange(s + txt.length, s + txt.length); } catch (x2) {}
+}
+function histNav(d) {
+  if (!S.hist.length) return;
+  S.hi = clamp(S.hi + d, 0, S.hist.length);
+  cmdEl.value = S.hist[S.hi] || '';
+  try { cmdEl.setSelectionRange(cmdEl.value.length, cmdEl.value.length); } catch (x) {}
+}
+function tabComplete() {
+  var v = cmdEl.value;
+  if (v.indexOf(' ') !== -1) return;
+  var names = S.mode === 'ps' ? CMD_NAMES.concat(PS_NAMES) : CMD_NAMES;
+  if (!S.tabMatches || S.tabMatches.prefix !== lc(v) && !inArr(S.tabMatches.list, v)) {
+    var pre = lc(v), list = [];
+    for (var i = 0; i < names.length; i++) if (starts(lc(names[i]), pre)) list.push(names[i]);
+    S.tabMatches = { prefix: pre, list: list, i: -1 };
+  }
+  var tm = S.tabMatches;
+  if (!tm.list.length) return;
+  tm.i = (tm.i + 1) % tm.list.length;
+  cmdEl.value = tm.list[tm.i];
+}
+function keyAction(k) {
+  if (k === 'up') histNav(-1);
+  else if (k === 'down') histNav(1);
+  else if (k === 'tab') tabComplete();
+  else if (k === 'ctrlc') interrupt(false);
+  else insertAtCursor(k);
+}
+
+/* --- Modal: Apostila, Roteiro, Atividade, Quadro e Chamados --- */
+var GUIDE = [
+  { h: '3. Identificação: quem sou eu na rede?', items: [
+    ['ipconfig', 'Resumo: IP, máscara e gateway de cada interface.'], ['ipconfig /all', 'Detalhes: MAC, DNS, DHCP ativo, validade do IP.'],
+    ['ipconfig /release', 'Devolve o IP recebido do DHCP (a máquina fica sem IP).'], ['ipconfig /renew', 'Pede um novo IP ao DHCP.'],
+    ['ipconfig /flushdns', 'Limpa o cache de DNS.'], ['ipconfig /displaydns', 'Mostra os nomes guardados no cache de DNS.'],
+    ['hostname', 'Nome do computador na rede.'], ['whoami', 'Usuário logado (computador\\usuário).'], ['whoami /groups', 'Grupos do usuário (ex.: Administradores).'],
+    ['getmac', 'Endereço MAC de cada placa.'], ['getmac /v', 'MAC com o nome de cada adaptador.'],
+    ['netsh interface ip show config', 'Configuração IP de todas as interfaces.'], ['netsh wlan show interfaces', 'Wi-Fi conectado, sinal (%) e velocidade.'],
+    ['netsh wlan show profiles', 'Redes Wi-Fi salvas no computador.'], ['netsh interface ip set address "Wi-Fi" static 192.168.0.50 255.255.255.0 192.168.0.1', 'Define um IP fixo (cuidado: altera a configuração).'],
+    ['netsh interface ip set address "Wi-Fi" dhcp', 'Volta a interface para IP automático.'], ['netsh winsock reset', 'Restaura as configurações de rede (reinicie depois).']] },
+  { h: '4. Testes: consigo chegar lá?', items: [
+    ['ping 127.0.0.1', 'Testa a própria placa / pilha TCP/IP.'], ['ping 192.168.0.1', 'Testa a comunicação com o gateway (roteador).'],
+    ['ping 8.8.8.8', 'Testa a saída para a internet.'], ['ping www.google.com', 'Testa a internet e a resolução de nomes (DNS).'],
+    ['ping -t 10.91.150.10', 'Envia pacotes sem parar até Ctrl+C.'], ['ping -n 10 8.8.8.8', 'Envia exatamente 10 pacotes.'],
+    ['ping -l 1400 8.8.8.8', 'Pacotes de 1400 bytes (rede com mais carga).'], ['ping -4 www.google.com', 'Força IPv4 (-6 força IPv6).'],
+    ['tracert www.google.com', 'Mostra cada roteador (salto) até o destino.'], ['tracert -d www.google.com', 'Sem buscar nomes: mais rápido.'],
+    ['pathping www.google.com', 'Rota + perda de pacotes em cada salto.'],
+    ['Test-NetConnection www.google.com -Port 443', 'Testa se a porta HTTPS está aberta (PowerShell).'], ['Test-NetConnection 192.168.0.10 -Port 3389', 'Testa a Área de Trabalho Remota do servidor.'],
+    ['tnc 8.8.8.8', 'Forma abreviada, parecida com o ping.'], ['curl -I https://www.google.com', 'Só o cabeçalho da resposta (200 OK = site no ar).'], ['curl ifconfig.me', 'Mostra o seu IP público.']] },
+  { h: '5. Análise: DNS, conexões, vizinhos e rotas', items: [
+    ['nslookup www.google.com', 'IP do site e qual servidor DNS respondeu.'], ['nslookup www.google.com 1.1.1.1', 'Consulta usando outro DNS.'],
+    ['nslookup -type=MX gmail.com', 'Servidores de e-mail do domínio.'], ['nslookup 8.8.8.8', 'Consulta reversa: nome a partir do IP.'], ['nslookup', 'Modo interativo (set type=MX, exit).'],
+    ['netstat -a', 'Todas as conexões e portas em escuta.'], ['netstat -n', 'IPs e portas em números.'], ['netstat -ano', 'Tudo, em números, com o PID.'],
+    ['netstat -b', 'Nome do programa de cada conexão.'], ['netstat -r', 'Tabela de rotas.'], ['netstat -e', 'Estatísticas da placa.'],
+    ['netstat -ano | findstr :443', 'Filtra as conexões da porta 443.'], ['tasklist | findstr 6340', 'Descobre o programa de um PID.'],
+    ['arp -a', 'IPs e MACs dos dispositivos da rede local.'], ['arp -d 192.168.0.1', 'Remove uma entrada.'], ['arp -d *', 'Limpa a tabela toda.'],
+    ['route print', 'Todas as rotas (IPv4 e IPv6).'], ['route print -4', 'Só IPv4.'], ['route add 10.10.0.0 mask 255.255.0.0 192.168.0.1', 'Adiciona rota temporária.'],
+    ['route -p add 10.20.0.0 mask 255.255.0.0 192.168.0.1', 'Adiciona rota permanente.'], ['route delete 10.10.0.0', 'Remove a rota.']] },
+  { h: '6. Outros comandos úteis', items: [
+    ['net view', 'Computadores visíveis na rede local.'], ['net share', 'Pastas compartilhadas por este computador.'], ['net use Z: \\\\srv-lab\\pasta', 'Mapeia uma pasta de rede como Z:.'],
+    ['ssh aluno@192.168.0.10', 'Acessa o servidor Linux do laboratório.'], ['systeminfo', 'Dados do sistema, placas de rede e IPs.'],
+    ['Get-NetIPConfiguration', 'Versão moderna do ipconfig (PowerShell).'], ['Get-NetAdapter', 'Placas, status e velocidade (PowerShell).'],
+    ['nmap 192.168.0.0/24', 'Descobre dispositivos e portas (só no laboratório!).']] }
+];
+var ROTEIRO = [
+  ['ipconfig', 'O computador tem IP válido? Se aparecer 169.254.x.x ou nenhum IP, verifique cabo/Wi-Fi e rode ipconfig /release e ipconfig /renew.'],
+  ['ping 127.0.0.1', 'A placa e o TCP/IP funcionam? Se falhar, reinstale o driver ou rode netsh winsock reset.'],
+  ['ping 192.168.0.1', 'A rede local funciona? Se falhar, o problema é no cabo, switch, Wi-Fi ou roteador.'],
+  ['ping 8.8.8.8', 'A internet chega? Se falhar, é o roteador ou o provedor. Use tracert 8.8.8.8 para ver onde para.'],
+  ['ping www.google.com', 'Os nomes são traduzidos? Se o passo 4 funcionou e este falhou, é DNS: ipconfig /flushdns e nslookup www.google.com 8.8.8.8.'],
+  ['Test-NetConnection www.google.com -Port 443', 'Só um site ou sistema não abre? Teste a porta ou use curl -I para ver se o serviço está no ar.']
+];
+var ATIV = [
+  { h: 'Parte A – Conhecendo a sua máquina', q: [
+    [1, 'Execute ipconfig /all e anote: IPv4, máscara, gateway, servidores DNS, MAC e se o DHCP está habilitado.', ['ipconfig /all']],
+    [2, 'Execute hostname, whoami e getmac /v. O MAC do getmac é igual ao do ipconfig /all?', ['hostname', 'whoami', 'getmac /v']],
+    [3, 'Com base na máscara, qual é o endereço da sua rede? Quantos computadores cabem nela?', ['ipconfig']]] },
+  { h: 'Parte B – Testando a conectividade', q: [
+    [4, 'Faça ping no seu gateway, em 8.8.8.8 e em www.google.com. Compare os tempos. Qual foi o mais rápido e por quê?', ['ping 192.168.0.1', 'ping 8.8.8.8', 'ping www.google.com']],
+    [5, 'Faça ping no IP do computador de um colega (peça o IP que aparece no ipconfig dele). Funcionou? Se não, qual pode ser o motivo?', []],
+    [6, 'Execute tracert www.google.com. Quantos saltos existem até o destino? Qual é o IP do primeiro salto e de quem ele é?', ['tracert www.google.com']]] },
+  { h: 'Parte C – Analisando a rede', q: [
+    [7, 'Execute nslookup www.google.com e nslookup www.google.com 1.1.1.1. Os IPs retornados são iguais?', ['nslookup www.google.com', 'nslookup www.google.com 1.1.1.1']],
+    [8, 'Execute netstat -ano | findstr :443. Quantas conexões ESTABLISHED aparecem?', ['netstat -ano | findstr :443']],
+    [9, 'Execute arp -a. Encontre o MAC do gateway. Quantos dispositivos aparecem na tabela?', ['arp -a']],
+    [10, 'Execute route print -4 e identifique a rota padrão (destino 0.0.0.0).', ['route print -4']]] },
+  { h: 'Parte D – Estudo de caso', q: [
+    [11, 'Um usuário liga para o suporte: “Consigo abrir o site pelo IP, mas não pelo nome”. Qual parte da rede está com problema? Quais comandos você usaria para confirmar e resolver?', ['#dns']]] },
+  { h: 'Questões de revisão', q: [
+    [12, 'Um computador mostra o IP 169.254.10.23 no ipconfig. O que isso significa? Liste três causas possíveis e os comandos para tentar resolver.', ['#apipa']],
+    [13, 'O ping 8.8.8.8 responde com 40% de perda de pacotes. Que comando ajuda a descobrir em qual roteador está a perda?', ['#perda']],
+    [14, 'Qual a diferença entre o IP mostrado no ipconfig e o IP mostrado no curl ifconfig.me?', ['ipconfig', 'curl ifconfig.me']],
+    [15, 'Por que um ping sem resposta nem sempre significa que o computador está desligado?', ['ping 192.168.0.10', 'Test-NetConnection 192.168.0.10 -Port 3389']],
+    [16, 'Qual a diferença entre o ping e o Test-NetConnection -Port?', ['#servico']]] }
+];
+var QUADRO = [
+  ['Ver IP, máscara e gateway', 'ipconfig / /all', 'ip a / ifconfig'], ['Renovar o IP', 'ipconfig /release + /renew', 'sudo dhclient -r + dhclient'],
+  ['Limpar cache de DNS', 'ipconfig /flushdns', 'resolvectl flush-caches'], ['Testar comunicação', 'ping', 'ping'],
+  ['Ver o caminho até o destino', 'tracert / pathping', 'traceroute / mtr'], ['Consultar DNS', 'nslookup', 'nslookup / dig'],
+  ['Testar uma porta', 'Test-NetConnection -Port', 'nc -zv host porta'], ['Ver conexões e portas', 'netstat -ano', 'ss -tunap'],
+  ['Ver MACs da rede local', 'arp -a', 'ip neigh'], ['Ver tabela de rotas', 'route print', 'ip route'],
+  ['Nome do PC / usuário', 'hostname / whoami', 'hostname / whoami'], ['MAC da minha placa', 'getmac', 'ip link']
+];
+var TABS = [['cmd', 'Comandos'], ['rot', 'Roteiro'], ['ativ', 'Atividade'], ['quadro', 'Windows × Linux'], ['ch', 'Chamados']];
+var curTab = 'cmd';
+function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function cmdRow(cmd, desc) {
+  var b = el('button', 'row'); b.type = 'button';
+  var cc = el('span', 'c'); cc.textContent = cmd; b.appendChild(cc);
+  if (desc) b.appendChild(document.createTextNode(desc));
+  b.setAttribute('data-cmd', cmd);
+  return b;
+}
+function miniBtn(label, data, alt) { var b = el('button', 'mini' + (alt ? ' alt' : '')); b.type = 'button'; b.textContent = label; b.setAttribute(alt ? 'data-tk' : 'data-cmd', data); return b; }
+function renderTab(id) {
+  curTab = id;
+  var tabs = $('tabs'); tabs.innerHTML = '';
+  for (var t = 0; t < TABS.length; t++) { var tb = el('button', 'tab' + (TABS[t][0] === id ? ' on' : '')); tb.type = 'button'; tb.textContent = TABS[t][1]; tb.setAttribute('data-tab', TABS[t][0]); tabs.appendChild(tb); }
+  var mb = $('mb'); mb.innerHTML = ''; mb.scrollTop = 0;
+  var i, j, sec;
+  if (id === 'cmd') {
+    mb.appendChild(el('p', 'p', 'Toque em um comando para executá-lo no terminal. Os comandos do PowerShell abrem o PowerShell automaticamente.'));
+    for (i = 0; i < GUIDE.length; i++) {
+      sec = el('div', 'sec'); sec.appendChild(el('h3', null, esc(GUIDE[i].h)));
+      for (j = 0; j < GUIDE[i].items.length; j++) sec.appendChild(cmdRow(GUIDE[i].items[j][0], GUIDE[i].items[j][1]));
+      mb.appendChild(sec);
+    }
+  } else if (id === 'rot') {
+    mb.appendChild(el('p', 'p', 'Roteiro de diagnóstico “o computador está sem internet”. Siga os passos em ordem: o primeiro que falhar mostra onde está o problema. Comece perto (a própria máquina) e vá se afastando: rede local → internet → DNS → serviço.'));
+    for (i = 0; i < ROTEIRO.length; i++) {
+      var q = el('div', 'q'); q.innerHTML = '<span class="n">' + (i + 1) + '</span>' + esc(ROTEIRO[i][1]);
+      var bt = el('div', 'bt'); bt.appendChild(miniBtn('▶ ' + ROTEIRO[i][0], ROTEIRO[i][0])); q.appendChild(bt);
+      mb.appendChild(q);
+    }
+    mb.appendChild(el('p', 'p', 'Para treinar o roteiro com um defeito de verdade, abra um chamado na aba <b>Chamados</b>.'));
+  } else if (id === 'ativ') {
+    mb.appendChild(el('p', 'p', 'Atividade prática da Apostila 02. Anote os resultados e tire print das telas para entregar.'));
+    for (i = 0; i < ATIV.length; i++) {
+      sec = el('div', 'sec'); sec.appendChild(el('h3', null, esc(ATIV[i].h)));
+      for (j = 0; j < ATIV[i].q.length; j++) {
+        var it = ATIV[i].q[j], qq = el('div', 'q');
+        qq.innerHTML = '<span class="n">' + it[0] + '</span>' + esc(it[1]);
+        if (it[2].length) {
+          var bt2 = el('div', 'bt');
+          for (var k = 0; k < it[2].length; k++) {
+            if (it[2][k].charAt(0) === '#') bt2.appendChild(miniBtn('Abrir chamado: ' + SCN[it[2][k].slice(1)].t, it[2][k].slice(1), true));
+            else bt2.appendChild(miniBtn('▶ ' + it[2][k], it[2][k]));
+          }
+          qq.appendChild(bt2);
+        }
+        sec.appendChild(qq);
+      }
+      mb.appendChild(sec);
+    }
+  } else if (id === 'quadro') {
+    mb.appendChild(el('p', 'p', 'Quadro-resumo: o mesmo objetivo no Windows e no Linux/macOS. Para praticar os comandos do Linux, conecte-se ao servidor do laboratório com <code>ssh aluno@192.168.0.10</code>.'));
+    var tw = el('div', 'tw'), tbl = el('table', 'qr');
+    var h = '<thead><tr><th>Situação</th><th>Windows</th><th>Linux/macOS</th></tr></thead><tbody>';
+    for (i = 0; i < QUADRO.length; i++) h += '<tr><td>' + esc(QUADRO[i][0]) + '</td><td><code>' + esc(QUADRO[i][1]) + '</code></td><td><code>' + esc(QUADRO[i][2]) + '</code></td></tr>';
+    tbl.innerHTML = h + '</tbody>'; tw.appendChild(tbl); mb.appendChild(tw);
+    var bt3 = el('div', 'bt'); bt3.appendChild(miniBtn('▶ ssh aluno@192.168.0.10', 'ssh aluno@192.168.0.10')); mb.appendChild(bt3);
+  } else if (id === 'ch') {
+    if (S.scn !== 'normal') {
+      var tkb = el('div', 'tkbox', '<b>Chamado #' + S.ticket + ' aberto</b> · ' + esc(SCN[S.scn].step) + '<br><br>' + esc(SCN[S.scn].ticket));
+      var bt4 = el('div', 'bt');
+      var ansB = el('button', 'mini alt'); ansB.type = 'button'; ansB.textContent = S.showAns ? 'Esconder resposta' : 'Ver resposta'; ansB.setAttribute('data-act', 'ans'); bt4.appendChild(ansB);
+      var clB = el('button', 'mini alt'); clB.type = 'button'; clB.textContent = 'Encerrar chamado'; clB.setAttribute('data-act', 'close'); bt4.appendChild(clB);
+      tkb.appendChild(bt4);
+      if (S.showAns) tkb.appendChild(el('div', 'ans', '<b>Causa e solução:</b> ' + SCN[S.scn].ans));
+      mb.appendChild(tkb);
+    }
+    mb.appendChild(el('p', 'p', 'Cada chamado coloca um defeito no computador simulado. Leia a reclamação do usuário e use o roteiro de diagnóstico para encontrar a causa. Alguns defeitos podem ser resolvidos por comando; outros, só identificados.'));
+    var sr = cmdRow('Chamado surpresa', 'Sorteia um defeito sem dizer qual é. Bom para avaliação.'); sr.removeAttribute('data-cmd'); sr.setAttribute('data-tk', 'rand'); mb.appendChild(sr);
+    sec = el('div', 'sec'); sec.appendChild(el('h3', null, 'Escolher o defeito'));
+    for (i = 0; i < SCN_ORDER.length; i++) { var s2 = SCN[SCN_ORDER[i]], r = cmdRow(s2.t, s2.step + ' · ' + s2.ticket); r.removeAttribute('data-cmd'); r.setAttribute('data-tk', SCN_ORDER[i]); sec.appendChild(r); }
+    mb.appendChild(sec);
+    var rs = cmdRow('Restaurar a configuração padrão', 'Desfaz IP fixo, DNS alterado e rotas, e encerra qualquer chamado.'); rs.removeAttribute('data-cmd'); rs.setAttribute('data-act', 'reset'); mb.appendChild(rs);
+  }
+}
+function openModal(tab) { renderTab(tab || curTab); $('modal').hidden = false; try { cmdEl.blur(); } catch (e) {} }
+function closeModal() { $('modal').hidden = true; }
+
+/* =========================================================
+ * EVENTOS E TAMANHO DA TELA
+ * ========================================================= */
+function fit() {
+  var vv = window.visualViewport;
+  var h = vv ? vv.height : window.innerHeight;
+  app.style.height = Math.round(h) + 'px';
+  app.style.top = vv ? Math.round(vv.offsetTop) + 'px' : '0px';
+  measureCols();
+  toBottom();
+}
+function applyFont() {
+  var fs = FONTS[S.fi];
+  vp.style.fontSize = fs + 'px';
+  var sc = fs / 16;
+  if (sc < 1) {
+    cmdEl.style.width = (100 / sc) + '%';
+    cmdEl.style.webkitTransform = 'scale(' + sc + ')'; cmdEl.style.transform = 'scale(' + sc + ')';
+    cmdEl.style.webkitTransformOrigin = '0 50%'; cmdEl.style.transformOrigin = '0 50%';
+    iw.style.height = Math.ceil(fs * 1.38) + 'px';
+    cmdEl.style.marginTop = (Math.ceil(fs * 1.38) - 19) / 2 + 'px';
+  } else {
+    cmdEl.style.width = '100%'; cmdEl.style.transform = 'none'; cmdEl.style.webkitTransform = 'none';
+    iw.style.height = 'auto'; cmdEl.style.marginTop = '0';
+  }
+  measureCols();
+}
+function noFocusSteal(elm) {
+  elm.addEventListener('mousedown', function (e) { e.preventDefault(); });
+}
+function init() {
+  buildChips();
+  applyFont();
+  setMode('cmd');
+  banner(false);
+  updateStatus();
+  detectNet();
+  fit();
+
+  frm.addEventListener('submit', function (e) { e.preventDefault(); submit(); });
+  cmdEl.addEventListener('keydown', function (e) {
+    var k = e.keyCode || e.which;
+    if (k === 13) { e.preventDefault(); submit(); }
+    else if (k === 38) { e.preventDefault(); histNav(-1); }
+    else if (k === 40) { e.preventDefault(); histNav(1); }
+    else if (k === 9) { e.preventDefault(); tabComplete(); }
+    else if ((e.ctrlKey || e.metaKey) && (k === 67 || e.key === 'c') && !(cmdEl.selectionStart !== cmdEl.selectionEnd)) { e.preventDefault(); interrupt(false); }
+    else if (k !== 16) { S.tabMatches = null; }
+  });
+  $('bRun').addEventListener('click', function () { submit(); });
+  var ks = document.querySelectorAll('.k');
+  for (var i = 0; i < ks.length; i++) {
+    (function (b) { b.addEventListener('click', function () { keyAction(b.getAttribute('data-k')); }); })(ks[i]);
+  }
+  noFocusSteal(document.querySelector('.keys'));
+  noFocusSteal($('chips'));
+  vp.addEventListener('click', function () {
+    var sel = '';
+    try { sel = String(window.getSelection ? window.getSelection() : ''); } catch (e) {}
+    if (!sel) { try { cmdEl.focus(); } catch (e2) {} }
+  });
+  $('bAp').addEventListener('click', function () { openModal('cmd'); });
+  $('bCh').addEventListener('click', function () { openModal('ch'); });
+  $('sTk').addEventListener('click', function () { openModal('ch'); });
+  $('bAa').addEventListener('click', function () { S.fi = (S.fi + 1) % FONTS.length; store('lab.font', String(S.fi)); applyFont(); toBottom(); });
+  $('bEdu').addEventListener('click', function () {
+    S.edu = !S.edu;
+    var b = $('bEdu'); b.textContent = 'Explicações: ' + (S.edu ? 'ON' : 'OFF'); b.className = 'pill' + (S.edu ? ' on' : '');
+  });
+  $('mX').addEventListener('click', closeModal);
+  $('modal').addEventListener('click', function (e) { if (e.target === $('modal')) closeModal(); });
+  $('tabs').addEventListener('click', function (e) { var t = e.target; if (t && t.getAttribute && t.getAttribute('data-tab')) renderTab(t.getAttribute('data-tab')); });
+  $('mb').addEventListener('click', function (e) {
+    var t = e.target;
+    while (t && t !== this && !(t.getAttribute && (t.getAttribute('data-cmd') || t.getAttribute('data-tk') || t.getAttribute('data-act')))) t = t.parentNode;
+    if (!t || t === this) return;
+    var cmdv = t.getAttribute('data-cmd'), tk = t.getAttribute('data-tk'), act = t.getAttribute('data-act');
+    if (cmdv) { quick(cmdv); return; }
+    if (tk) { closeModal(); openTicket(tk); return; }
+    if (act === 'ans') { S.showAns = !S.showAns; renderTab('ch'); return; }
+    if (act === 'close') { closeModal(); closeTicket('O chamado foi encerrado e o computador voltou ao normal.' + (S.showAns ? '' : ' Dica: veja a resposta antes de encerrar, na aba Chamados.')); return; }
+    if (act === 'reset') { closeModal(); interrupt(true); if (S.mode !== 'cmd' && S.mode !== 'ps') setMode('cmd'); closeTicket('Configuração padrão restaurada: IP automático (' + esc(S.wifi.ip) + '), gateway ' + GW + ' e DNS 8.8.8.8.'); }
+  });
+  document.addEventListener('keydown', function (e) { if ((e.keyCode === 27) && !$('modal').hidden) closeModal(); });
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); }
+  cmdEl.addEventListener('focus', function () { setTimeout(fit, 300); });
+}
+
+/* Ponto de teste: permite verificar comandos fora do navegador */
+window.__lab = { S: S, run: function (t) { line(promptStr() + t, 'echo'); handleLine(t); }, openTicket: openTicket, reach: reach };
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
