@@ -1,5 +1,7 @@
 # Prompt de Rede
 
+![Prompt de Rede](og-image.png)
+
 Simulador do Prompt de Comando do Windows para praticar comandos de rede no celular, em sala de aula. Acompanha a **Apostila 02 – Comandos de Rede e Diagnóstico** (Redes de Computadores II, ETEMB).
 
 **Abrir:** https://viniciusframos0.github.io/prompt-de-rede/
